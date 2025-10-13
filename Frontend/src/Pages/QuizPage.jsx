@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import '../Styles/QuizPage.css'; // The CSS is now imported from this file
+import '../Styles/QuizPage.css';
+import { useApi } from '../hooks/useApi'; // ✅ 1. Import the custom hook
 
 export default function QuizPage() {
     const location = useLocation();
@@ -10,50 +11,36 @@ export default function QuizPage() {
     const [quizTitle, setQuizTitle] = useState('');
     const [quizQuestions, setQuizQuestions] = useState(null);
     const [userAnswers, setUserAnswers] = useState({});
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState(null);
     const [submissionResult, setSubmissionResult] = useState(null);
+    
+    // ✅ 2. Instantiate the hook, including its setError function
+    const { apiFetch, isLoading, error, setError } = useApi();
 
+    // ✅ 3. Refactor useEffect to use the hook
     useEffect(() => {
         if (!step || roadmapId === undefined || stageIndex === undefined || stepIndex === undefined) {
+            // Manually set an error using the hook's function if essential data is missing
             setError("Quiz details are missing. Please return to the roadmap.");
-            setIsLoading(false);
             return;
         }
 
         const fetchQuiz = async () => {
-            setIsLoading(true);
-            setError(null);
-            try {
-                const res = await fetch("http://localhost:5000/api/user/generate-quiz", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    credentials: 'include',
-                    body: JSON.stringify({
-                        course_title: step.title,
-                        course_description: step.description
-                    })
-                });
+            const data = await apiFetch("/api/user/generate-quiz", {
+                method: "POST",
+                body: JSON.stringify({
+                    course_title: step.title,
+                    course_description: step.description
+                })
+            });
 
-                if (!res.ok) {
-                    const errorData = await res.json();
-                    throw new Error(errorData.error || `HTTP error! status: ${res.status}`);
-                }
-
-                const data = await res.json();
+            if (data) {
                 setQuizTitle(data.quiz_title);
                 setQuizQuestions(data.questions);
-
-            } catch (err) {
-                console.error("Error generating quiz:", err);
-                setError(err.message || "Failed to generate the quiz. Please try again.");
-            } finally {
-                setIsLoading(false);
             }
         };
 
         fetchQuiz();
-    }, [step, roadmapId, stageIndex, stepIndex]);
+    }, [step, roadmapId, stageIndex, stepIndex]); // Dependencies remain the same
 
     const handleAnswerChange = (questionText, answer) => {
         setUserAnswers(prev => ({
@@ -62,49 +49,35 @@ export default function QuizPage() {
         }));
     };
 
+    // ✅ 4. Refactor handleSubmitQuiz to use the hook
     const handleSubmitQuiz = async () => {
-        setIsLoading(true);
-        setError(null);
-        try {
-            const answersArray = Object.keys(userAnswers).map(qText => ({
-                question_text: qText,
-                answer: userAnswers[qText]
-            }));
+        const answersArray = Object.keys(userAnswers).map(qText => ({
+            question_text: qText,
+            answer: userAnswers[qText]
+        }));
 
-            const payload = {
-                user_answers: answersArray,
-                quiz_data: {
-                    quiz_title: quizTitle,
-                    questions: quizQuestions,
-                },
-                roadmap_id: roadmapId,
-                stage_index: stageIndex,
-                step_index: stepIndex
-            };
+        const payload = {
+            user_answers: answersArray,
+            quiz_data: {
+                quiz_title: quizTitle,
+                questions: quizQuestions,
+            },
+            roadmap_id: roadmapId,
+            stage_index: stageIndex,
+            step_index: stepIndex
+        };
 
-            const res = await fetch("http://localhost:5000/api/user/submit-quiz", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                credentials: 'include',
-                body: JSON.stringify(payload)
-            });
+        const data = await apiFetch("/api/user/submit-quiz", {
+            method: "POST",
+            body: JSON.stringify(payload)
+        });
 
-            if (!res.ok) {
-                const errorData = await res.json();
-                throw new Error(errorData.error || `HTTP error! status: ${res.status}`);
-            }
-
-            const data = await res.json();
+        if (data) {
             setSubmissionResult(data);
-
-        } catch (err) {
-            console.error("Error submitting quiz:", err);
-            setError(err.message || "Failed to submit quiz. Please try again.");
-        } finally {
-            setIsLoading(false);
         }
     };
 
+    // ✅ 5. The JSX now uses isLoading and error from the hook for cleaner rendering logic
     return (
         <div className="quiz-container">
             {error && (
@@ -116,64 +89,64 @@ export default function QuizPage() {
 
             {isLoading && !quizQuestions && (
                  <div className="loading-page">
-                    <div className="spinner"></div>
-                    <p>Generating your quiz...</p>
-                </div>
+                     <div className="spinner"></div>
+                     <p>Generating your quiz...</p>
+                 </div>
             )}
             
             {!isLoading && !error && !submissionResult && quizQuestions && (
                  <>
-                    <h1 className="quiz-title">{quizTitle}</h1>
-                    <p className="quiz-description">Test your knowledge on "{step.title}"</p>
+                     <h1 className="quiz-title">{quizTitle}</h1>
+                     <p className="quiz-description">Test your knowledge on "{step.title}"</p>
 
-                    <div className="quiz-questions-list">
-                        {quizQuestions.map((q, qIndex) => (
-                            <div key={qIndex} className="quiz-question-card">
-                                <p className="question-text">{qIndex + 1}. {q.question_text}</p>
-                                {q.type === 'multiple-choice' && (
-                                    <div className="options-grid">
-                                        {q.options.map((option, oIndex) => (
-                                            <label key={oIndex} className="option-label">
-                                                <input
-                                                    type="radio"
-                                                    name={`question-${qIndex}`}
-                                                    value={option}
-                                                    checked={userAnswers[q.question_text] === option}
-                                                    onChange={() => handleAnswerChange(q.question_text, option)}
-                                                />
-                                                {option}
-                                            </label>
-                                        ))}
-                                    </div>
-                                )}
-                                {q.type === 'short-answer' && (
-                                    <textarea
-                                        className="short-answer-input"
-                                        placeholder="Type your answer here..."
-                                        value={userAnswers[q.question_text] || ''}
-                                        onChange={(e) => handleAnswerChange(q.question_text, e.target.value)}
-                                    />
-                                )}
-                                {q.type === 'coding' && (
-                                    <textarea
-                                        className="coding-answer-input"
-                                        placeholder="Write your code here..."
-                                        value={userAnswers[q.question_text] || ''}
-                                        onChange={(e) => handleAnswerChange(q.question_text, e.target.value)}
-                                    />
-                                )}
-                            </div>
-                        ))}
-                    </div>
+                     <div className="quiz-questions-list">
+                         {quizQuestions.map((q, qIndex) => (
+                             <div key={qIndex} className="quiz-question-card">
+                                 <p className="question-text">{qIndex + 1}. {q.question_text}</p>
+                                 {q.type === 'multiple-choice' && (
+                                     <div className="options-grid">
+                                         {q.options.map((option, oIndex) => (
+                                             <label key={oIndex} className="option-label">
+                                                 <input
+                                                     type="radio"
+                                                     name={`question-${qIndex}`}
+                                                     value={option}
+                                                     checked={userAnswers[q.question_text] === option}
+                                                     onChange={() => handleAnswerChange(q.question_text, option)}
+                                                 />
+                                                 {option}
+                                             </label>
+                                         ))}
+                                     </div>
+                                 )}
+                                 {q.type === 'short-answer' && (
+                                     <textarea
+                                         className="short-answer-input"
+                                         placeholder="Type your answer here..."
+                                         value={userAnswers[q.question_text] || ''}
+                                         onChange={(e) => handleAnswerChange(q.question_text, e.target.value)}
+                                     />
+                                 )}
+                                 {q.type === 'coding' && (
+                                     <textarea
+                                         className="coding-answer-input"
+                                         placeholder="Write your code here..."
+                                         value={userAnswers[q.question_text] || ''}
+                                         onChange={(e) => handleAnswerChange(q.question_text, e.target.value)}
+                                     />
+                                 )}
+                             </div>
+                         ))}
+                     </div>
 
-                    <button 
-                        className="quiz-submit-btn" 
-                        onClick={handleSubmitQuiz} 
-                        disabled={isLoading || Object.keys(userAnswers).length !== quizQuestions.length}
-                    >
-                        {isLoading ? 'Submitting...' : 'Submit Quiz'}
-                    </button>
-                </>
+                     <button 
+                         className="quiz-submit-btn" 
+                         onClick={handleSubmitQuiz} 
+                         disabled={isLoading || Object.keys(userAnswers).length !== quizQuestions.length}
+                     >
+                         {isLoading ? 'Submitting...' : 'Submit Quiz'}
+                     </button>
+                 </>
             )}
 
             {submissionResult && (
@@ -198,4 +171,3 @@ export default function QuizPage() {
         </div>
     );
 }
-

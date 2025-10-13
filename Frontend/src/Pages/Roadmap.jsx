@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../Styles/Roadmap.css';
+import { useApi } from '../hooks/useApi';
 
 // A helper component to render icons based on the resource type
 const ResourceIcon = ({ type }) => {
@@ -24,115 +25,76 @@ export default function Roadmap() {
     const navigate = useNavigate();
     const [domain, setDomain] = useState("");
     const [roadmapData, setRoadmapData] = useState(null);
-    const [isLoading, setIsLoading] = useState(true); // Start loading immediately
-    const [error, setError] = useState(null);
+    
+    const { apiFetch, isLoading, error, setError } = useApi();
 
-    // --- Step 3: Memoized function to fetch an existing roadmap ---
+    // Variable to track total steps for alternating layout
+    let totalStepsCount = 0;
+
     const fetchRoadmap = useCallback(async (selectedDomain) => {
         if (!selectedDomain) {
-            setRoadmapData(null); // Clear roadmap if no domain is provided
-            setIsLoading(false); // Stop loading if there's nothing to fetch
+            setRoadmapData(null);
             return;
         }
-        setIsLoading(true);
-        setError(null);
-        try {
-            const res = await fetch(`http://localhost:5000/api/user/get-user-roadmap?domain=${selectedDomain}`, {
-                method: "GET",
-                credentials: 'include',
-            });
-            if (!res.ok) {
-                const errorData = await res.json();
-                throw new Error(errorData.error || `HTTP error! status: ${res.status}`);
-            }
-            const data = await res.json();
+        const data = await apiFetch(`/api/user/get-user-roadmap?domain=${selectedDomain}`);
+        if (data) {
             setRoadmapData(data.roadmap ? data : null);
-        } catch (err) {
-            console.error("Error fetching roadmap:", err);
-            setError(err.message || "Failed to fetch existing roadmap.");
-        } finally {
-            setIsLoading(false);
         }
-    }, []); // Empty dependency array as it has no external dependencies from component state
+    }, [apiFetch]);
 
-    // --- Step 3: Memoized function to generate a new roadmap ---
     const handleGenerateRoadmap = useCallback(async () => {
         if (!domain) {
             setError("Please select a domain first.");
             return;
         }
-        setIsLoading(true);
-        setError(null);
         setRoadmapData(null);
-        try {
-            const res = await fetch("http://localhost:5000/api/user/generate-roadmap", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                credentials: 'include',
-                body: JSON.stringify({ domain })
-            });
-            if (!res.ok) {
-                const errorData = await res.json();
-                throw new Error(errorData.error || `HTTP error! status: ${res.status}`);
-            }
-            const data = await res.json();
+        const data = await apiFetch("/api/user/generate-roadmap", {
+            method: "POST",
+            body: JSON.stringify({ domain })
+        });
+        if (data) {
             setRoadmapData(data);
-        } catch (err) {
-            console.error("Error generating roadmap:", err);
-            setError(err.message || "Failed to generate the roadmap.");
-        } finally {
-            setIsLoading(false);
         }
-    }, [domain]); // Depends only on the 'domain' state
+    }, [domain, apiFetch, setError]);
 
-    // --- Step 1: Effect to fetch the last generated domain on initial mount ---
+    // Effect to run only once on component mount to get the last used domain
     useEffect(() => {
         const fetchInitialDomain = async () => {
-            setError(null);
-            try {
-                const res = await fetch(`http://localhost:5000/api/user/get-last-generated-domain`, {
-                    credentials: 'include',
-                });
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.last_domain) {
-                        // --- Step 2: Automatically set the domain state ---
-                        setDomain(data.last_domain);
-                        // The next useEffect will now trigger to fetch this domain's roadmap
-                    } else {
-                        setIsLoading(false); // No last domain, so we can stop the initial loading indicator
-                    }
-                } else {
-                     setIsLoading(false); // Stop loading on HTTP error
-                }
-            } catch (err) {
-                console.error("Error fetching initial domain:", err);
-                setIsLoading(false); // Stop loading on fetch error
+            const data = await apiFetch(`/api/user/get-last-generated-domain`);
+            if (data?.last_domain) {
+                setDomain(data.last_domain);
             }
         };
         fetchInitialDomain();
-    }, []); // Runs only once on mount
+    }, [apiFetch]); // Add apiFetch here as a dependency, useCallback makes it stable.
 
-    // --- Effect that runs whenever the 'domain' state changes ---
+    // ✅ FIX: This useEffect now ONLY depends on the domain changing.
+    // It no longer has `isLoading` as a dependency, which was causing the infinite loop.
     useEffect(() => {
-        // This will run both on initial load (if a last_domain was found)
-        // and when the user manually changes the select dropdown.
-        fetchRoadmap(domain);
-    }, [domain, fetchRoadmap]); // Now depends on the stable fetchRoadmap function
+        if (domain) {
+            fetchRoadmap(domain);
+        } else {
+            // If the user deselects the domain, clear the roadmap
+            setRoadmapData(null);
+        }
+    }, [domain, fetchRoadmap]);
 
     const handleGoToTest = (stepData, stageIndex, stepIndex) => {
-        navigate('/QuizPage', {
-            state: {
-                step: stepData,
-                roadmapId: roadmapData.id,
-                stageIndex: stageIndex,
-                stepIndex: stepIndex
-            }
-        });
+        if (roadmapData?.id) {
+            navigate('/QuizPage', {
+                state: {
+                    step: stepData,
+                    roadmapId: roadmapData.id,
+                    stageIndex,
+                    stepIndex
+                }
+            });
+        } else {
+            setError("Roadmap data is not available to start a quiz.");
+        }
     };
 
     const layoutClassName = `roadmap-page-container ${roadmapData ? 'layout-shifted' : ''}`;
-    let totalStepsCount = 0;
 
     return (
         <div className={layoutClassName}>
@@ -143,6 +105,7 @@ export default function Roadmap() {
                     value={domain} 
                     onChange={(e) => setDomain(e.target.value)} 
                     className="domain-select-roadmap"
+                    disabled={isLoading}
                 >
                     <option value="">-- Select Your Career Path --</option>
                     <optgroup label="Software & Web Development">
@@ -175,24 +138,28 @@ export default function Roadmap() {
                 <button 
                     className="return-btn-roadmap" 
                     onClick={() => navigate('/dashboard')}
+                    disabled={isLoading}
                 >
                     Return to Dashboard
                 </button>
             </aside>
             <main className="roadmap-main-content">
                 {error && <div className="roadmap-error">{error}</div>}
-                {isLoading && (
+                
+                {isLoading && !roadmapData && (
                     <div className="loading-spinner">
                         <div className="spinner"></div>
                         <p>Loading your learning journey...</p>
                     </div>
                 )}
-                {!isLoading && !roadmapData && (
+                
+                {!isLoading && !roadmapData && !error && (
                     <div className="no-roadmap-placeholder">
                         <p>Your personalized roadmap will appear here.</p>
                         <p>Select a career path to begin.</p>
                     </div>
                 )}
+                
                 {roadmapData && (
                     <div className="roadmap-timeline-container">
                         <div className="road-line"></div>
@@ -209,20 +176,33 @@ export default function Roadmap() {
                                             <div className="step-milestone">
                                                 <div className="milestone-number">{totalStepsCount}</div>
                                             </div>
-                                            <a 
-                                                href={step.study_link} 
-                                                target="_blank" 
-                                                rel="noopener noreferrer" 
-                                                className="step-content-link"
-                                            >
-                                                <div className="step-content">
-                                                    <h3 className="step-title">
-                                                        <ResourceIcon type={step.resource_type} />
-                                                        {step.title}
-                                                    </h3>
-                                                    <p className="step-description">{step.description}</p>
+                                            {step.is_unlocked ? (
+                                                <a 
+                                                    href={step.study_link} 
+                                                    target="_blank" 
+                                                    rel="noopener noreferrer" 
+                                                    className="step-content-link"
+                                                >
+                                                    <div className="step-content">
+                                                        <h3 className="step-title">
+                                                            <ResourceIcon type={step.resource_type} />
+                                                            {step.title}
+                                                        </h3>
+                                                        <p className="step-description">{step.description}</p>
+                                                    </div>
+                                                </a>
+                                            ) : (
+                                                <div className="step-content-link disabled">
+                                                    <div className="step-content">
+                                                        <h3 className="step-title">
+                                                            <ResourceIcon type={step.resource_type} />
+                                                            {step.title}
+                                                        </h3>
+                                                        <p className="step-description">{step.description}</p>
+                                                    </div>
                                                 </div>
-                                            </a>
+                                            )}
+                                            
                                             <div className="step-actions">
                                                 {step.is_completed ? (
                                                     <span className="completion-status">
@@ -249,4 +229,3 @@ export default function Roadmap() {
         </div>
     );
 }
-

@@ -110,3 +110,11 @@ def verify_otp():
     finally:
         cursor.close()
         conn.close()
+
+# Add at the end of login.py
+@login_bp.route("/logout", methods=["POST"])
+def logout():
+    resp = make_response(jsonify({"message": "Successfully logged out"}))
+    # Setting the cookie with an expired date and max_age=0 effectively deletes it
+    resp.set_cookie("token", "", expires=0, max_age=0, httponly=True, path="/")
+    return resp, 200

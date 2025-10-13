@@ -12,8 +12,8 @@
 /* --- STATE 1: Initial Centered Layout --- */
 .roadmap-page-container:not(.layout-shifted) {
     flex-direction: column;
-    justify-content: center;
     align-items: center;
+    padding-top: 5vh;
 }
 
 /* --- STATE 2: Shifted Sidebar Layout --- */
@@ -32,11 +32,11 @@
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
     text-align: center;
     transition: all 0.5s ease-in-out;
+    width: 100%;
 }
 
 .roadmap-page-container:not(.layout-shifted) .roadmap-controls {
     max-width: 700px;
-    width: 100%;
 }
 
 .roadmap-page-container.layout-shifted .roadmap-controls {
@@ -49,6 +49,7 @@
 .roadmap-main-content {
     flex-grow: 1;
     min-width: 0;
+    width: 100%;
 }
 
 .roadmap-title {
@@ -100,6 +101,7 @@
 .generate-btn-roadmap:disabled {
     background-color: #4a3470;
     cursor: not-allowed;
+    opacity: 0.7;
 }
 
 .roadmap-timeline-container {
@@ -173,23 +175,37 @@
     margin-bottom: 0;
 }
 
-.loading-spinner {
-    text-align: center;
+/***************************************/
+/* ✅ FIX: NORMAL LOADING SPINNER STYLES */
+/***************************************/
+.loading-spinner, .no-roadmap-placeholder {
     padding: 4rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 40vh;
+    color: #7a6c90;
+    font-size: 1.2rem;
 }
+
+/* This is the key fix to make the spinner a perfect circle */
 .spinner {
-    border: 4px solid #332352;
-    border-top: 4px solid #9D4EDD;
+    border: 5px solid #332352;
+    border-top: 5px solid #9D4EDD;
     border-radius: 50%;
-    width: 50px;
-    height: 50px;
+    width: 60px;  /* Width and height MUST be equal */
+    height: 60px;
     animation: spin 1s linear infinite;
-    margin: 0 auto 1rem auto;
+    margin-bottom: 1.5rem;
+    flex-shrink: 0; /* Prevents flexbox from distorting the shape */
 }
+
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+/***************************************/
 
 .roadmap-error {
     padding: 1rem;
@@ -227,13 +243,6 @@
 }
 
 /* --- Styles for new features --- */
-
-.no-roadmap-placeholder {
-    text-align: center;
-    padding: 4rem;
-    color: #7a6c90;
-    font-size: 1.2rem;
-}
 .step-actions {
     margin-top: 1rem;
     text-align: center;
@@ -268,7 +277,9 @@
     opacity: 0.5;
     filter: grayscale(80%);
 }
-.roadmap-step.step-locked .step-content-link:hover .step-content {
+.step-content-link.disabled,
+.step-content-link.disabled:hover .step-content {
+    cursor: not-allowed;
     transform: none;
     box-shadow: none;
     border-color: #332352;
@@ -280,8 +291,6 @@
 .roadmap-step.step-completed .step-content {
     border-color: #8AFF8A;
 }
-
-/* --- Return to Dashboard Button Style --- */
 .return-btn-roadmap {
     width: 100%;
     padding: 1rem;
@@ -289,14 +298,17 @@
     font-weight: 600;
     border-radius: 8px;
     cursor: pointer;
-    margin-top: 1rem; /* Space from the button above */
+    margin-top: 1rem;
     background-color: transparent;
-    color: #f0e0e0; /* Use a prominent color from your theme */
-    border: 1px solid #4a3470; /* A subtle border */
+    color: #E0E0E0;
+    border: 1px solid #4a3470;
     transition: all 0.3s ease;
 }
-
-.return-btn-roadmap:hover {
-    background-color: #ea2842; /* Darker background on hover */
+.return-btn-roadmap:hover:not(:disabled) {
+    background-color: #332352;
     border-color: #9D4EDD;
+}
+.return-btn-roadmap:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }

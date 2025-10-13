@@ -1,119 +1,63 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from 'react-router-dom';
-import '../Styles/SkillGapAnalysis.css'; // The CSS is now imported from this file
+import '../Styles/SkillGapAnalysis.css';
+import { useApi } from '../hooks/useApi'; // ✅ Import hook
 
 export default function SkillGapAnalysis() {
     const navigate = useNavigate();
-    const [skills, setSkills] = useState([]);
     const [editedSkills, setEditedSkills] = useState("");
     const [domain, setDomain] = useState("");
     const [analysisResult, setAnalysisResult] = useState(null);
-    const [isLoading, setIsLoading] = useState(true); // Start loading immediately
-    const [error, setError] = useState(null);
+    
+    // ✅ Use the hook
+    const { apiFetch, isLoading, error, setError } = useApi();
 
-    // --- Fetch user's combined skills on initial mount ---
     useEffect(() => {
-        const fetchSkills = async () => {
-            try {
-                const res = await fetch(`http://localhost:5000/api/user/skill-gap/skills`, {
-                    credentials: 'include',
-                });
-                if (!res.ok) throw new Error("Could not fetch skills.");
-                const data = await res.json();
-                if (data.skills) {
-                    setSkills(data.skills);
-                    setEditedSkills(data.skills.join(", "));
-                }
-            } catch (err) {
-                console.error("Error fetching skills:", err);
-                setError("Failed to fetch your skills list.");
+        const fetchInitialData = async () => {
+            // Fetch skills and last domain in parallel
+            const [skillsData, domainData] = await Promise.all([
+                apiFetch(`/api/user/skill-gap/skills`),
+                apiFetch(`/api/user/skill-gap/last-domain`)
+            ]);
+
+            if (skillsData?.skills) {
+                setEditedSkills(skillsData.skills.join(", "));
+            }
+            if (domainData?.last_domain) {
+                setDomain(domainData.last_domain);
             }
         };
-        fetchSkills();
-    }, []);
+        fetchInitialData();
+    }, []); // Run only on mount
 
-    // --- Memoized function to fetch the latest analysis for a specific domain ---
     const fetchLatestAnalysis = useCallback(async (selectedDomain) => {
         if (!selectedDomain) {
-            setAnalysisResult(null); // Clear results if no domain is selected
-            setIsLoading(false);
+            setAnalysisResult(null);
             return;
-        };
-        setIsLoading(true);
-        setError(null);
-        try {
-            const res = await fetch(`http://localhost:5000/api/user/skill-gap/latest?domain=${selectedDomain}`, {
-                credentials: 'include',
-            });
-            if (!res.ok) throw new Error("Could not fetch latest analysis.");
-            const data = await res.json();
-            if (data.analysis) {
-                setAnalysisResult(data.analysis);
-            } else {
-                setAnalysisResult(null); // Explicitly clear if no analysis found for this domain
-            }
-        } catch (err) {
-            console.error("Error fetching latest analysis:", err);
-            // Don't set a hard error, as user can generate a new one.
-        } finally {
-            setIsLoading(false);
         }
-    }, []);
+        const data = await apiFetch(`/api/user/skill-gap/latest?domain=${selectedDomain}`);
+        setAnalysisResult(data?.analysis || null);
+    }, [apiFetch]);
 
-    // --- On initial mount, fetch the last-used domain ---
     useEffect(() => {
-        const fetchInitialDomain = async () => {
-            setIsLoading(true); // Ensure loading is true at the start
-            try {
-                const res = await fetch(`http://localhost:5000/api/user/skill-gap/last-domain`, {
-                    credentials: 'include',
-                });
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.last_domain) {
-                        setDomain(data.last_domain); // This will trigger the next effect to load the analysis
-                    } else {
-                        setIsLoading(false); // No history, stop loading
-                    }
-                } else {
-                    setIsLoading(false);
-                }
-            } catch (err) {
-                console.error("Error fetching last domain:", err);
-                setIsLoading(false);
-            }
-        };
-        fetchInitialDomain();
-    }, []);
-
-    // --- This effect runs whenever the 'domain' state changes ---
-    useEffect(() => {
-        fetchLatestAnalysis(domain);
+        if (domain) {
+            fetchLatestAnalysis(domain);
+        }
     }, [domain, fetchLatestAnalysis]);
 
-
-    // --- Function to generate a NEW analysis ---
     const handleAnalyze = async () => {
-        setIsLoading(true);
-        setError(null);
-        try {
-            const res = await fetch("http://localhost:5000/api/user/skill-gap/analyze", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                credentials: 'include',
-                body: JSON.stringify({
-                    skills: editedSkills.split(",").map(s => s.trim()),
-                    domain
-                })
-            });
-            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-            const data = await res.json();
+        if (!domain) {
+            setError("Please select a domain to analyze.");
+            return;
+        }
+        const skillsArray = editedSkills.split(",").map(s => s.trim()).filter(s => s);
+        const data = await apiFetch("/api/user/skill-gap/analyze", {
+            method: "POST",
+            body: JSON.stringify({ skills: skillsArray, domain })
+        });
+
+        if (data) {
             setAnalysisResult(data);
-        } catch (err) {
-            console.error("Error analyzing skills:", err);
-            setError("Analysis failed. Could not connect to the server.");
-        } finally {
-            setIsLoading(false);
         }
     };
 

@@ -1,66 +1,42 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import '../Styles/LearningRecommendations.css'; // The CSS is now imported from this file
+import '../Styles/LearningRecommendations.css';
+import { useApi } from '../hooks/useApi'; // ✅ 1. Import the custom hook
 
 export default function LearningRecommendations() {
     const navigate = useNavigate();
     const [userData, setUserData] = useState(null);
     const [recommendations, setRecommendations] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState(null);
+    
+    // ✅ 2. Instantiate the hook, replacing the old useState calls
+    const { apiFetch, isLoading, error } = useApi();
 
-    // Function to fetch recommendations (used for initial load)
+    // ✅ 3. Refactor the fetch function to be cleaner
     const fetchRecommendations = async () => {
-        setIsLoading(true);
-        setError(null);
-        try {
-            const res = await fetch('http://localhost:5000/api/user/learning-recommendations', {
-                credentials: 'include',
-            });
-            if (!res.ok) {
-                const errorData = await res.json();
-                throw new Error(errorData.error || `HTTP error! status: ${res.status}`);
-            }
-            const data = await res.json();
+        const data = await apiFetch('/api/user/learning-recommendations');
+        if (data) {
             setUserData({ degree: data.degree, stream: data.stream });
             setRecommendations(data.recommendations);
-        } catch (err) {
-            console.error("Error fetching recommendations:", err);
-            setError(err.message || "Could not fetch recommendations. Please try again.");
-        } finally {
-            setIsLoading(false);
         }
     };
     
-    // Function to force generate NEW recommendations
+    // ✅ 4. Refactor the refresh function to be cleaner
     const handleRefreshRecommendations = async () => {
-        setIsLoading(true);
-        setError(null);
-        try {
-            const res = await fetch('http://localhost:5000/api/user/learning-recommendations/generate', {
-                method: 'POST',
-                credentials: 'include',
-            });
-            if (!res.ok) {
-                const errorData = await res.json();
-                throw new Error(errorData.error || `HTTP error! status: ${res.status}`);
-            }
-            const data = await res.json();
+        const data = await apiFetch('/api/user/learning-recommendations/generate', {
+            method: 'POST'
+        });
+        if (data) {
             setUserData({ degree: data.degree, stream: data.stream });
             setRecommendations(data.recommendations);
-        } catch (err) {
-            console.error("Error refreshing recommendations:", err);
-            setError(err.message || "Could not refresh recommendations.");
-        } finally {
-            setIsLoading(false);
         }
     };
 
-    // Fetch initial data on component mount
+    // This useEffect hook remains the same, but now calls the cleaner function
     useEffect(() => {
         fetchRecommendations();
     }, []);
 
+    // ✅ 5. The JSX now directly uses `isLoading` and `error` from the hook
     return (
         <div className="recs-page-container">
             <div className="recs-header">
@@ -73,10 +49,9 @@ export default function LearningRecommendations() {
                 )}
             </div>
             
-            {/* --- UPDATED: Both buttons are now here --- */}
             <div className="recs-actions">
                 <button className="refresh-btn" onClick={handleRefreshRecommendations} disabled={isLoading}>
-                    {isLoading ? 'Refreshing...' : 'Get New AI Recommendations'}
+                    {isLoading ? 'AI is Refreshing...' : 'Get New AI Recommendations'}
                 </button>
                 <button className="return-dashboard-btn" onClick={() => navigate('/dashboard')}>
                     Return to Dashboard
@@ -93,7 +68,6 @@ export default function LearningRecommendations() {
             {error && (
                 <div className="feedback-container">
                     <p className="error-message">{error}</p>
-                    {/* A return button is still helpful on the error screen */}
                     <button className="return-dashboard-btn" onClick={() => navigate('/dashboard')}>
                         Return to Dashboard
                     </button>
@@ -144,4 +118,3 @@ export default function LearningRecommendations() {
         </div>
     );
 }
-

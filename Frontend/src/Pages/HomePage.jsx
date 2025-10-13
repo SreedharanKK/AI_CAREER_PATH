@@ -1,5 +1,6 @@
-import { useState , useRef} from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import toast from 'react-hot-toast';
 import "../Styles/HomePage.css";
 
 export default function HomePage() {
@@ -9,33 +10,45 @@ export default function HomePage() {
   const [otp, setOtp] = useState(["", "", "", ""]);
   const [loginEmail, setLoginEmail] = useState("");
 
-  // ✅ Initialize refs safely
+  // --- NEW: State for the controlled signup form ---
+  const [signupData, setSignupData] = useState({
+    full_name: "",
+    email: "",
+    password: "",
+    confirm_password: "",
+  });
+
+  // ✅ Initialize refs safely for OTP inputs
   const otpRefs = Array.from({ length: 4 }, () => useRef(null));
+
+  // --- NEW: Handler for signup form changes ---
+  const handleSignupChange = (e) => {
+    const { name, value } = e.target;
+    setSignupData(prev => ({ ...prev, [name]: value }));
+  };
 
   const handleOtpChange = (value, index) => {
     const newOtp = [...otp];
     newOtp[index] = value.slice(-1); // only last digit
     setOtp(newOtp);
 
-        // ✅ Auto move to next input
+    // Auto move to next input
     if (value && index < otpRefs.length - 1) {
       otpRefs[index + 1].current?.focus();
     }
   };
-  
-  // ✅ Signup submit handler
+
+  // --- UPDATED: Signup submit handler using state ---
   const handleSignupSubmit = async (e) => {
     e.preventDefault();
 
-    const full_name = e.target[0].value;
-    const email = e.target[1].value;
-    const password = e.target[2].value;
-    const confirm_password = e.target[3].value;
-
-    if (password !== confirm_password) {
-        alert("❌ Passwords do not match!");
-        return; // Stop the submission
+    if (signupData.password !== signupData.confirm_password) {
+      toast.error("❌ Passwords do not match!");
+      return; // Stop the submission
     }
+    
+    // Destructure from state for clarity
+    const { full_name, email, password } = signupData;
 
     try {
       const res = await fetch("http://localhost:5000/api/auth/signup", {
@@ -48,19 +61,20 @@ export default function HomePage() {
       console.log("Signup Response:", data);
 
       if (res.ok) {
-        alert("✅ Signup Successful!");
-        e.target.reset(); // clear form after success
+        toast.success("Signup Successful!");
+        // Reset form state after success
+        setSignupData({ full_name: "", email: "", password: "", confirm_password: "" });
         setActiveTab("login"); // ✅ move to login tab automatically
       } else {
-        alert("❌ " + data.error);
+        toast.error(data.error);
       }
     } catch (err) {
       console.error("Error:", err);
-      alert("⚠️ Server not responding");
+      toast.error("⚠️ Server not responding");
     }
   };
 
-  // ✅ Updated login submit handler
+  // ✅ Updated login submit handler (No changes needed here)
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     const email = e.target[0].value;
@@ -79,18 +93,18 @@ export default function HomePage() {
       console.log("Login Response:", data);
 
       if (res.ok) {
-        alert("✅ OTP sent to your email!");
+        toast.success("OTP sent to your email!");
         setOtpSent(true); // show OTP input section
       } else {
-        alert("❌ " + data.error);
+        toast.error(data.error);
       }
     } catch (err) {
       console.error("Error:", err);
-      alert("⚠️ Server not responding");
+      toast.error("⚠️ Server not responding");
     }
   };
 
-  // ✅ OTP verification handler
+  // ✅ OTP verification handler (No changes needed here)
   const handleOtpVerify = async () => {
     const enteredOtp = otp.join(""); // join 4 digits
 
@@ -98,22 +112,22 @@ export default function HomePage() {
       const res = await fetch("http://localhost:5000/api/auth/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include", 
-        body: JSON.stringify({ email: loginEmail, otp: enteredOtp }), // ✅ send email
+        credentials: "include",
+        body: JSON.stringify({ email: loginEmail, otp: enteredOtp }),
       });
 
       const data = await res.json();
       console.log("OTP Verification Response:", data);
 
       if (res.ok) {
-        alert("✅ OTP Verified! Redirecting to Dashboard...");
+        toast.success("OTP Verified! Redirecting to Dashboard...");
         navigate("/Dashboard");
       } else {
-        alert("❌ " + data.error);
+        toast.error(data.error);
       }
     } catch (err) {
       console.error("Error:", err);
-      alert("⚠️ Server not responding");
+      toast.error("⚠️ Server not responding");
     }
   };
 
@@ -130,7 +144,6 @@ export default function HomePage() {
           generate customized roadmaps, and stay job-ready with AI-powered
           analysis.
         </p>
-
         <ul className="features-list">
           <li>📌 Personalized learning roadmap based on your domain</li>
           <li>📌 AI-generated quizzes to track your skill progress</li>
@@ -138,7 +151,6 @@ export default function HomePage() {
           <li>📌 Smart job recommendations using LinkedIn</li>
           <li>📌 Secure OTP verification for account safety</li>
         </ul>
-
         <p className="why-choose">
           Unlike generic learning platforms, our AI understands your
           strengths and weaknesses, providing a step-by-step journey toward
@@ -170,13 +182,41 @@ export default function HomePage() {
           </button>
         </div>
 
-        {/* Signup */}
+        {/* --- UPDATED Signup Form --- */}
         {activeTab === "signup" && (
           <form className="form" onSubmit={handleSignupSubmit}>
-            <input type="text" placeholder="Full Name" />
-            <input type="email" placeholder="Email" />
-            <input type="password" placeholder="Password" />
-            <input type="password" placeholder="Re-enter Password" />
+            <input 
+              type="text" 
+              name="full_name" 
+              placeholder="Full Name" 
+              value={signupData.full_name} 
+              onChange={handleSignupChange} 
+              required 
+            />
+            <input 
+              type="email" 
+              name="email" 
+              placeholder="Email" 
+              value={signupData.email} 
+              onChange={handleSignupChange} 
+              required 
+            />
+            <input 
+              type="password" 
+              name="password" 
+              placeholder="Password" 
+              value={signupData.password} 
+              onChange={handleSignupChange} 
+              required 
+            />
+            <input 
+              type="password" 
+              name="confirm_password" 
+              placeholder="Re-enter Password" 
+              value={signupData.confirm_password} 
+              onChange={handleSignupChange} 
+              required 
+            />
             <button className="btn-primary" type="submit">Sign Up</button>
           </form>
         )}
@@ -184,8 +224,8 @@ export default function HomePage() {
         {/* Login */}
         {activeTab === "login" && !otpSent && (
           <form onSubmit={handleLoginSubmit} className="form">
-            <input type="email" placeholder="Email" />
-            <input type="password" placeholder="Password" />
+            <input type="email" placeholder="Email" required />
+            <input type="password" placeholder="Password" required />
             <button className="btn-primary">Send OTP</button>
           </form>
         )}
@@ -198,7 +238,7 @@ export default function HomePage() {
               {otp.map((digit, i) => (
                 <input
                   key={i}
-                  ref={otpRefs[i]}     // ✅ attach ref to each input
+                  ref={otpRefs[i]}
                   type="text"
                   maxLength={1}
                   value={digit}

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
+import { Toaster } from 'react-hot-toast';
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import './App.css'
 import HomePage from './Pages/HomePage';
@@ -16,6 +17,7 @@ import JobRecommendations from './Pages/JobRecommendations';
 function App() {
 
   return (
+    <>
     <BrowserRouter>
     <Routes>
       <Route path="/" element={<HomePage/>}/>
@@ -29,6 +31,9 @@ function App() {
       <Route path='/JobRecommendations' element={<JobRecommendations/>}/>
     </Routes>
     </BrowserRouter>
+    <Toaster position="top-center" />
+    </>
+    
   )
 }
 

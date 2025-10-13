@@ -6,6 +6,7 @@ import {
   faBullseye, faLightbulb, faBriefcase, faEdit, faFilePdf
 } from '@fortawesome/free-solid-svg-icons';
 import '../Styles/Dashboard.css';
+import { useApi } from '../hooks/useApi'; // ✅ 1. Import the custom hook
 
 export default function Dashboard() {
   const [userName, setUserName] = useState("Loading...");
@@ -15,73 +16,58 @@ export default function Dashboard() {
   const [latestAnalysis, setLatestAnalysis] = useState(null);
   const [latestRoadmap, setLatestRoadmap] = useState(null);
   const [achievementsSummary, setAchievementsSummary] = useState(null);
-  const [latestRecs, setLatestRecs] = useState(null); // <-- State for recommendations preview
+  const [latestRecs, setLatestRecs] = useState(null);
   const navigate = useNavigate();
 
+  // ✅ 2. Instantiate the hook
+  const { apiFetch, isLoading, error } = useApi();
+
+  // ✅ 3. Refactor useEffect to use the hook
   useEffect(() => {
-    // Fetches all dashboard data in parallel for better performance
     const fetchAllData = async () => {
-        try {
-            const [
-                userRes, 
-                analysisRes, 
-                roadmapRes, 
-                recsRes, 
-                achievementsRes
-            ] = await Promise.all([
-                fetch('http://localhost:5000/api/user/profile', { credentials: 'include' }),
-                fetch('http://localhost:5000/api/user/skill-gap/latest', { credentials: 'include' }),
-                fetch('http://localhost:5000/api/user/roadmap/latest', { credentials: 'include' }),
-                fetch('http://localhost:5000/api/user/learning-recommendations/latest', { credentials: 'include' }),
-                fetch('http://localhost:5000/api/user/achievements/summary', { credentials: 'include' })
-            ]);
+      // Promise.all now uses the cleaner apiFetch function
+      const [
+        userRes,
+        analysisRes,
+        roadmapRes,
+        recsRes,
+        achievementsRes
+      ] = await Promise.all([
+        apiFetch('/api/user/profile'),
+        apiFetch('/api/user/skill-gap/latest'),
+        apiFetch('/api/user/roadmap/latest'),
+        apiFetch('/api/user/learning-recommendations/latest'),
+        apiFetch('/api/user/achievements/summary')
+      ]);
 
-            // Handle user profile and potential session expiry
-            if (userRes.status === 401) {
-                console.warn("Session expired, redirecting to login...");
-                navigate("/");
-                return;
-            }
-            if(userRes.ok) {
-                const userData = await userRes.json();
-                setUserName(userData.fullName);
-            }
-
-            // Process other responses
-            if(analysisRes.ok) {
-                const analysisData = await analysisRes.json();
-                if (analysisData.analysis) setLatestAnalysis(analysisData.analysis);
-            }
-            if(roadmapRes.ok) {
-                const roadmapData = await roadmapRes.json();
-                if (roadmapData.roadmap) setLatestRoadmap(roadmapData.roadmap);
-            }
-            if(recsRes.ok) {
-                const recsData = await recsRes.json();
-                if (recsData.recommendations_summary) setLatestRecs(recsData.recommendations_summary);
-            }
-            if(achievementsRes.ok) {
-                const achievementsData = await achievementsRes.json();
-                if (achievementsData.summary) setAchievementsSummary(achievementsData.summary);
-            }
-
-        } catch (error) {
-            console.error("Failed to fetch dashboard data:", error);
-            navigate('/'); // Navigate to login on any critical fetch error
-        }
+      // No need for try/catch or 401 checks here; the hook handles it.
+      // Just check if the data was returned successfully.
+      if (userRes) {
+        setUserName(userRes.fullName);
+      }
+      if (analysisRes?.analysis) {
+        setLatestAnalysis(analysisRes.analysis);
+      }
+      if (roadmapRes?.roadmap) {
+        setLatestRoadmap(roadmapRes.roadmap);
+      }
+      if (recsRes?.recommendations_summary) {
+        setLatestRecs(recsRes.recommendations_summary);
+      }
+      if (achievementsRes?.summary) {
+        setAchievementsSummary(achievementsRes.summary);
+      }
     };
 
     fetchAllData();
-  }, [navigate]);
+  }, []); // The apiFetch function is stable, so we can keep the dependency array empty.
 
+  // ✅ 4. Refactor handleViewProfile
   const handleViewProfile = async () => {
-    try {
-      const response = await fetch('http://localhost:5000/api/user/details', {
-        method: 'GET',
-        credentials: 'include',
-      });
-      if (!response.ok) throw new Error("Failed to fetch profile details");
-      const data = await response.json();
+    // The hook simplifies this function significantly
+    const data = await apiFetch('/api/user/details');
+    
+    if (data) {
       if (data.dob) {
         const dateObj = new Date(data.dob);
         if (!isNaN(dateObj)) {
@@ -92,17 +78,35 @@ export default function Dashboard() {
       }
       setUserDetails(data);
       setShowProfile(true);
-    } catch (err) {
-      console.error("Error loading profile details:", err);
     }
   };
 
   const handleLogoutClick = () => setIsModalOpen(true);
-  const confirmLogout = () => {
+
+  // ✅ 5. Refactor confirmLogout
+  const confirmLogout = async () => {
+    await apiFetch('/api/auth/logout', { method: 'POST' });
     setIsModalOpen(false);
-    navigate('/');
+    navigate('/'); // Navigate after the hook clears the cookie
   };
 
+  // ✅ 6. Add Loading and Error UI based on the hook's state
+  if (isLoading && userName === "Loading...") {
+    return (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+            <h2>Loading Dashboard...</h2>
+        </div>
+    );
+  }
+
+  if (error) {
+     return (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: 'red' }}>
+            <h2>Error: {error}</h2>
+        </div>
+    );
+  }
+  
   return (
     <>
       <div className="dashboard-layout">
@@ -124,6 +128,7 @@ export default function Dashboard() {
         <main className="dashboard-main-content">
           {!showProfile ? (
             <div className="card-grid">
+              {/* Achievements Card */}
               <div className="dashboard-card clickable" onClick={() => navigate('/Achievements')}>
                 <div className="card-header">
                   <FontAwesomeIcon icon={faTrophy} className="card-icon" />
@@ -136,11 +141,12 @@ export default function Dashboard() {
                       <p><span className="preview-icon">🎓</span> Completed Courses: {achievementsSummary.completed_courses}</p>
                       <p><span className="preview-icon">📊</span> Analyses Performed: {achievementsSummary.skill_analyses_count}</p>
                   </div>
-              ) : (
+                ) : (
                   <p className="analysis-preview-none">Start learning to see your achievements!</p>
-              )}
+                )}
               </div>
 
+              {/* Roadmap Card */}
               <div className="dashboard-card clickable" onClick={() => navigate('/Roadmap')}>
                 <div className="card-header">
                   <FontAwesomeIcon icon={faRoute} className="card-icon" />
@@ -160,6 +166,7 @@ export default function Dashboard() {
                 )}
               </div>
 
+              {/* Skill Gap Analysis Card */}
               <div className="dashboard-card clickable" onClick={() => navigate('/SkillGapAnalysis')}>
                 <div className="card-header">
                   <FontAwesomeIcon icon={faBullseye} className="card-icon" />
@@ -179,14 +186,13 @@ export default function Dashboard() {
                 )}
               </div>
               
-              {/* --- UPDATED Learning Recommendations Card --- */}
+              {/* Learning Recommendations Card */}
               <div className="dashboard-card clickable" onClick={() => navigate('/LearningRecommendations')}>
                 <div className="card-header">
                   <FontAwesomeIcon icon={faLightbulb} className="card-icon" />
                   <h3>Learning Recommendations</h3>
                 </div>
                 <p className="card-description">AI-powered advice on what to learn next based on your profile.</p>
-                {/* --- Conditionally render the latest recommendations preview --- */}
                 {latestRecs ? (
                     <div className="analysis-preview">
                         <h4><span className="preview-icon">📚</span>Key Topics to Explore:</h4>
@@ -201,6 +207,7 @@ export default function Dashboard() {
                 )}
               </div>
 
+              {/* Job Recommendations Card */}
               <div className="dashboard-card clickable full-width" onClick={() => navigate('/JobRecommendations')}>
                 <div className="card-header">
                   <FontAwesomeIcon icon={faBriefcase} className="card-icon" />
@@ -257,4 +264,3 @@ export default function Dashboard() {
     </>
   );
 }
-

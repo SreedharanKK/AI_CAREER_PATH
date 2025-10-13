@@ -1,37 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import '../Styles/Achievements.css'; // The CSS is now imported from this file
+import '../Styles/Achievements.css';
+import { useApi } from '../hooks/useApi'; // ✅ 1. Import the custom hook
 
 export default function Achievements() {
     const navigate = useNavigate();
     const [achievements, setAchievements] = useState(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [selectedQuiz, setSelectedQuiz] = useState(null); // For the quiz details modal
+    const [selectedQuiz, setSelectedQuiz] = useState(null);
 
+    // ✅ 2. Instantiate the hook and remove manual isLoading/error states
+    const { apiFetch, isLoading, error } = useApi();
+
+    // ✅ 3. Refactor useEffect to use the cleaner apiFetch function
     useEffect(() => {
-        const fetchAchievements = async () => {
-            setIsLoading(true);
-            setError(null);
-            try {
-                const res = await fetch('http://localhost:5000/api/user/achievements', {
-                    credentials: 'include',
-                });
-                if (!res.ok) {
-                    const errorData = await res.json();
-                    throw new Error(errorData.error || `HTTP error! status: ${res.status}`);
-                }
-                const data = await res.json();
+        const fetchAchievementsData = async () => {
+            // The hook handles loading, errors, and session expiry automatically
+            const data = await apiFetch('/api/user/achievements');
+            if (data) {
                 setAchievements(data);
-            } catch (err) {
-                console.error("Error fetching achievements:", err);
-                setError(err.message || "Could not fetch your achievements.");
-            } finally {
-                setIsLoading(false);
             }
         };
-        fetchAchievements();
-    }, []);
+        fetchAchievementsData();
+    }, []); // The apiFetch function is stable, so the dependency array can be empty
 
     const QuizDetailModal = ({ quiz, onClose }) => {
         if (!quiz) return null;
@@ -61,6 +51,7 @@ export default function Achievements() {
                 <p className="achievements-subtitle">A summary of your completed roadmap courses and skill analyses.</p>
             </div>
 
+            {/* ✅ 4. The JSX now uses isLoading and error directly from the hook */}
             {isLoading && (
                 <div className="feedback-container">
                     <div className="spinner"></div>
@@ -117,10 +108,10 @@ export default function Achievements() {
                         </div>
                     </div>
                      <div style={{ textAlign: 'center', marginTop: '2rem' }}>
-                        <button className="return-dashboard-btn" onClick={() => navigate('/dashboard')}>
-                            Return to Dashboard
-                        </button>
-                    </div>
+                         <button className="return-dashboard-btn" onClick={() => navigate('/dashboard')}>
+                             Return to Dashboard
+                         </button>
+                     </div>
                 </>
             )}
             
@@ -128,4 +119,3 @@ export default function Achievements() {
         </div>
     );
 }
-
