@@ -1,65 +1,233 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react'; // ADDED: useRef
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AnimatedPage from '../hooks/AnimatedPage';
-import '../Styles/Roadmap.css';
+import '../Styles/Roadmap.css'; // We will need to add new styles
 import { useApi } from '../hooks/useApi';
 import useParticleBackground from '../hooks/UseParticleBackground';
 
-// A helper component to render icons based on the resource type
+// Helper component (Unchanged)
 const ResourceIcon = ({ type }) => {
-    // ... (This component is unchanged)
-    const icons = { Course: '🎓', Video: '▶️', Article: '📄', Book: '📚', Project: '💻', Documentation: '📝', "Video Tutorial": '▶️', "Interactive Course": '🎓', "Project Idea": '💡', Default: '⭐' };
-    const icon = icons[type] || icons['Default'];
-    return <span className="resource-icon" title={type}>{icon}</span>;
+    const icons = { Course: '🎓', Video: '▶️', Article: '📄', Book: '📚', Project: '💻', Documentation: '📝', "Video Tutorial": '▶️', "Interactive Course": '🎓', "Project Idea": '💡', Default: '⭐' };
+    const icon = icons[type] || icons['Default'];
+    return <span className="resource-icon" title={type}>{icon}</span>;
 };
+
+// NEW: Helper component for the completion percentage bar
+const CompletionBar = ({ percentage }) => (
+    <div className="completion-bar-container">
+        <div className="completion-bar-track">
+            <div className="completion-bar-fill" style={{ width: `${percentage}%` }}></div>
+        </div>
+        <span className="completion-bar-text">{percentage}%</span>
+    </div>
+);
 
 export default function Roadmap() {
     const navigate = useNavigate();
-    const [domain, setDomain] = useState("");
-    const [roadmapData, setRoadmapData] = useState(null);
-    const canvasRef = useRef(null); // ADDED: Ref for the canvas element
+    const [newDomain, setNewDomain] = useState(""); // State for the <select> dropdown
+    const [activeRoadmaps, setActiveRoadmaps] = useState([]); // List of user's roadmaps (e.g., [{id: 1, domain: "FE", ...}, ...])
+    const [selectedRoadmap, setSelectedRoadmap] = useState(null); // The full data of the chosen roadmap
     
+    const canvasRef = useRef(null);
     const { apiFetch, isLoading, error, setError } = useApi();
     useParticleBackground(canvasRef);
     let totalStepsCount = 0;
 
+    // --- NEW: Fetch the list of active roadmaps on load ---
+    const fetchActiveRoadmaps = useCallback(async () => {
+        const data = await apiFetch('/api/user/get-all-active-roadmaps');
+        if (data) {
+            setActiveRoadmaps(data);
+            // If no roadmap is currently selected, auto-select the first one from the list
+            if (data.length > 0 && !selectedRoadmap) {
+                handleSelectRoadmap(data[0].domain);
+            }
+        }
+    }, [apiFetch, selectedRoadmap]); // We'll re-run this logic, but need to fetch the selection
 
-    const fetchRoadmap = useCallback(async (selectedDomain) => { if (!selectedDomain) { setRoadmapData(null); return; } const data = await apiFetch(`/api/user/get-user-roadmap?domain=${selectedDomain}`); if (data) { setRoadmapData(data.roadmap ? data : null); } }, [apiFetch]);
-    const handleGenerateRoadmap = useCallback(async () => { if (!domain) { setError("Please select a domain first."); return; } setRoadmapData(null); const data = await apiFetch("/api/user/generate-roadmap", { method: "POST", body: JSON.stringify({ domain }) }); if (data) { setRoadmapData(data); } }, [domain, apiFetch, setError]);
-    useEffect(() => { const fetchInitialDomain = async () => { const data = await apiFetch(`/api/user/get-last-generated-domain`); if (data?.last_domain) { setDomain(data.last_domain); } }; fetchInitialDomain(); }, [apiFetch]);
-    useEffect(() => { if (domain) { fetchRoadmap(domain); } else { setRoadmapData(null); } }, [domain, fetchRoadmap]);
-    const handleGoToTest = (stepData, stageIndex, stepIndex) => { if (roadmapData?.id) { navigate('/QuizPage', { state: { step: stepData, roadmapId: roadmapData.id, stageIndex, stepIndex } }); } else { setError("Roadmap data is not available to start a quiz."); } };
+    // --- MODIFIED: Fetch initial list on mount ---
+    useEffect(() => {
+        const fetchInitialList = async () => {
+            const data = await apiFetch('/api/user/get-all-active-roadmaps');
+            if (data) {
+                setActiveRoadmaps(data);
+                // Auto-select the first roadmap in the list
+                if (data.length > 0) {
+                    handleSelectRoadmap(data[0].domain);
+                }
+            }
+        };
+        fetchInitialList();
+    }, [apiFetch]); // Run only once on load
+    
+    // --- NEW: Fetch full data for a *specific* roadmap when clicked ---
+    const handleSelectRoadmap = useCallback(async (domainToSelect) => {
+        if (!domainToSelect) {
+            setSelectedRoadmap(null);
+            return;
+        }
+        // Set loading state for the main content
+        setSelectedRoadmap(null); 
+        const data = await apiFetch(`/api/user/get-user-roadmap?domain=${domainToSelect}`);
+        if (data) {
+            setSelectedRoadmap(data.roadmap ? data : null);
+        }
+    }, [apiFetch]); // This function is now standalone
 
+    // --- MODIFIED: Handle generating a *new* roadmap ---
+    const handleGenerateRoadmap = useCallback(async () => {
+        if (!newDomain) {
+            setError("Please select a domain to generate.");
+            return;
+        }
 
-    const layoutClassName = `roadmap-page-container ${roadmapData ? 'layout-shifted' : ''}`;
+        // Check if user already has this roadmap
+        const isExisting = activeRoadmaps.some(r => r.domain === newDomain);
+        
+        // Check for 2-roadmap limit ONLY if it's a new roadmap
+        if (!isExisting && activeRoadmaps.length >= 2) {
+            setError("You can only have 2 active roadmaps at a time. Please delete one to add another.");
+            return;
+        }
+        
+        setSelectedRoadmap(null); // Clear selection to show loading
+        const data = await apiFetch("/api/user/generate-roadmap", {
+            method: "POST",
+            body: JSON.stringify({ domain: newDomain })
+        });
+        
+        if (data) {
+            setSelectedRoadmap(data); // Show the new roadmap
+            setNewDomain(""); // Clear the dropdown
+            // Refresh the list of active roadmaps to include the new one
+            fetchActiveRoadmaps(); 
+        }
+    }, [newDomain, activeRoadmaps, apiFetch, setError, fetchActiveRoadmaps]);
+
+    
+    const handleGoToTest = (stepData, stageIndex, stepIndex) => {
+        if (selectedRoadmap?.id) {
+            navigate('/QuizPage', { state: { step: stepData, roadmapId: selectedRoadmap.id, stageIndex, stepIndex } });
+        } else {
+            setError("Roadmap data is not available to start a quiz.");
+        }
+    };
+
+    // MODIFIED: Layout class depends on a roadmap *being selected*
+    const layoutClassName = `roadmap-page-container ${selectedRoadmap ? 'layout-shifted' : ''}`;
 
     return (
         <AnimatedPage>
             <div className={layoutClassName}>
-            {/* ADDED: The canvas element for the animation */}
-            <canvas ref={canvasRef} className="live-background-canvas"></canvas>
+                <canvas ref={canvasRef} className="live-background-canvas"></canvas>
 
-            <aside className="roadmap-controls">
-                <h1 className="roadmap-title">AI Digital Roadmap</h1>
-                {/* ... (The rest of your JSX remains exactly the same) ... */}
-                <p className="roadmap-subtitle">Select a career path to view your progress or generate a new journey.</p>
-                <select value={domain} onChange={(e) => setDomain(e.target.value)} className="domain-select-roadmap" disabled={isLoading} >
-                    <option value="">-- Select Your Career Path --</option>
-                    <optgroup label="Software & Web Development"> <option value="Frontend Developer">Frontend Developer</option> <option value="Backend Developer">Backend Developer</option> <option value="Full Stack Developer">Full Stack Developer</option> <option value="DevOps Engineer">DevOps Engineer</option> <option value="Android Developer">Android Developer</option> <option value="iOS Developer">iOS Developer</option> </optgroup>
-                    <optgroup label="AI & Data Science"> <option value="AI / Machine Learning Engineer">AI / ML Engineer</option> <option value="Data Scientist">Data Scientist</option> <option value="Data Analyst">Data Analyst</option> <option value="Data Engineer">Data Engineer</option> </optgroup>
-                    <optgroup label="Cyber Security"> <option value="Cyber Security Analyst">Cyber Security Analyst</option> <option value="Penetration Tester">Penetration Tester</option> <option value="Security Engineer">Security Engineer</option> </optgroup>
-                </select>
-                <button className="generate-btn-roadmap" onClick={handleGenerateRoadmap} disabled={isLoading || !domain} > {isLoading ? 'Loading...' : 'Generate/Refresh Roadmap'} </button>
-                <button className="return-btn-roadmap" onClick={() => navigate('/dashboard')} disabled={isLoading} > Return to Dashboard </button>
-            </aside>
-            <main className="roadmap-main-content">
-                {/* ... (The rest of your JSX remains exactly the same) ... */}
-                {error && <div className="roadmap-error">{error}</div>}
-                {isLoading && !roadmapData && ( <div className="loading-spinner"> <div className="spinner"></div> <p>Loading your learning journey...</p> </div> )}
-                {!isLoading && !roadmapData && !error && ( <div className="no-roadmap-placeholder"> <p>Your personalized roadmap will appear here.</p> <p>Select a career path to begin.</p> </div> )}
-                {roadmapData && ( <div className="roadmap-timeline-container"> <div className="road-line"></div> {roadmapData.roadmap.map((stage, stageIndex) => ( <React.Fragment key={stageIndex}> {stage.steps.map((step, stepIndex) => { totalStepsCount++; const isLeft = (totalStepsCount % 2 !== 0); return ( <div key={`${stageIndex}-${stepIndex}`} className={`roadmap-step ${isLeft ? 'step-left' : 'step-right'} ${step.is_completed ? 'step-completed' : ''} ${!step.is_unlocked ? 'step-locked' : ''}`} > <div className="step-milestone"> <div className="milestone-number">{totalStepsCount}</div> </div> {step.is_unlocked ? ( <a href={step.study_link} target="_blank" rel="noopener noreferrer" className="step-content-link" > <div className="step-content"> <h3 className="step-title"> <ResourceIcon type={step.resource_type} /> {step.title} </h3> <p className="step-description">{step.description}</p> </div> </a> ) : ( <div className="step-content-link disabled"> <div className="step-content"> <h3 className="step-title"> <ResourceIcon type={step.resource_type} /> {step.title} </h3> <p className="step-description">{step.description}</p> </div> </div> )} <div className="step-actions"> {step.is_completed ? ( <span className="completion-status"> ✅ Completed (Score: {step.test_score}%) </span> ) : ( <button className="test-btn" onClick={() => handleGoToTest(step, stageIndex, stepIndex)} disabled={!step.is_unlocked} > {step.is_unlocked ? 'Go to Test' : 'Locked'} </button> )} </div> </div> ); })} </React.Fragment> ))} </div> )}
-            </main>
-        </div>
+                <aside className="roadmap-controls">
+                    <h1 className="roadmap-title">AI Digital Roadmap</h1>
+                    
+                    {/* --- NEW: Active Roadmaps Box --- */}
+                    <div className="active-roadmaps-box">
+                        <h2 className="active-roadmaps-title">Your Active Roadmaps</h2>
+                        {activeRoadmaps.length > 0 ? (
+                            activeRoadmaps.map(roadmap => (
+                                <button 
+                                    key={roadmap.id} 
+                                    className={`roadmap-card ${selectedRoadmap?.id === roadmap.id ? 'active' : ''}`}
+                                    onClick={() => handleSelectRoadmap(roadmap.domain)}
+                                    disabled={isLoading && !selectedRoadmap} // Disable while loading
+                                >
+                                    <span className="roadmap-card-domain">{roadmap.domain}</span>
+                                    <CompletionBar percentage={roadmap.completion_percentage} />
+                                </button>
+                            ))
+                        ) : (
+                            <p className="no-active-roadmaps">You have no active roadmaps.</p>
+                        )}
+                    </div>
+
+                    {/* --- MODIFIED: "Generate New" Section --- */}
+                    <div className="generate-roadmap-box">
+                        <h2 className="generate-roadmap-title">Add a New Roadmap</h2>
+                        <p className="roadmap-subtitle">Select a career path to generate a new journey (Max 2).</p>
+                        <select value={newDomain} onChange={(e) => setNewDomain(e.target.value)} className="domain-select-roadmap" disabled={isLoading} >
+                            <option value="">-- Select Career Path --</option>
+                            <optgroup label="Software & Web Development"> <option value="Frontend Developer">Frontend Developer</option> <option value="Backend Developer">Backend Developer</option> <option value="Full Stack Developer">Full Stack Developer</option> <option value="DevOps Engineer">DevOps Engineer</option> <option value="Android Developer">Android Developer</option> <option value="iOS Developer">iOS Developer</option> </optgroup>
+                            <optgroup label="AI & Data Science"> <option value="AI / Machine Learning Engineer">AI / ML Engineer</option> <option value="Data Scientist">Data Scientist</option> <option value="Data Analyst">Data Analyst</option> <option value="Data Engineer">Data Engineer</option> </optgroup>
+                            <optgroup label="Cyber Security"> <option value="Cyber Security Analyst">Cyber Security Analyst</option> <option value="Penetration Tester">Penetration Tester</option> <option value="Security Engineer">Security Engineer</option> </optgroup>
+                        </select>
+                        <button className="generate-btn-roadmap" onClick={handleGenerateRoadmap} disabled={isLoading || !newDomain} >
+                            {isLoading ? 'Generating...' : 'Generate New Roadmap'}
+                        </button>
+                    </div>
+                    
+                    <button className="return-btn-roadmap" onClick={() => navigate('/dashboard')} disabled={isLoading} >
+                        Return to Dashboard
+                    </button>
+                </aside>
+                
+                <main className="roadmap-main-content">
+                    {error && <div className="roadmap-error">{error}</div>}
+                    
+                    {/* MODIFIED: Show loading spinner if loading *or* if loading a selected roadmap */}
+                    {isLoading && !selectedRoadmap && (
+                        <div className="loading-spinner">
+                            <div className="spinner"></div>
+                            <p>Loading your learning journey...</p>
+                        </div>
+                    )}
+                    
+                    {/* MODIFIED: Show placeholder if not loading and *no roadmap is selected* */}
+                    {!isLoading && !selectedRoadmap && !error && (
+                        <div className="no-roadmap-placeholder">
+                            <p>Your personalized roadmap will appear here.</p>
+                            <p>{activeRoadmaps.length > 0 ? 'Select a roadmap to begin.' : 'Generate a new roadmap to start.'}</p>
+                        </div>
+                    )}
+                    
+                    {/* MODIFIED: Render based on selectedRoadmap */}
+                    {selectedRoadmap && (
+                        <div className="roadmap-timeline-container">
+                            <div className="road-line"></div>
+                            {selectedRoadmap.roadmap.map((stage, stageIndex) => (
+                                <React.Fragment key={stageIndex}>
+                                    {stage.steps.map((step, stepIndex) => {
+                                        totalStepsCount++;
+                                        const isLeft = (totalStepsCount % 2 !== 0);
+                                        return (
+                                            <div key={`${stageIndex}-${stepIndex}`} className={`roadmap-step ${isLeft ? 'step-left' : 'step-right'} ${step.is_completed ? 'step-completed' : ''} ${!step.is_unlocked ? 'step-locked' : ''}`} >
+                                                <div className="step-milestone"><div className="milestone-number">{totalStepsCount}</div></div>
+                                                {step.is_unlocked ? (
+                                                    <a href={step.study_link} target="_blank" rel="noopener noreferrer" className="step-content-link" >
+                                                        <div className="step-content">
+                                                            <h3 className="step-title"><ResourceIcon type={step.resource_type} /> {step.title}</h3>
+                                                            <p className="step-description">{step.description}</p>
+                                                        </div>
+                                                    </a>
+                                                ) : (
+                                                    <div className="step-content-link disabled">
+                                                        <div className="step-content">
+                                                            <h3 className="step-title"><ResourceIcon type={step.resource_type} /> {step.title}</h3>
+                                                            <p className="step-description">{step.description}</p>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                <div className="step-actions">
+                                                    {step.is_completed ? (
+                                                        <span className="completion-status"> ✅ Completed (Score: {step.test_score}%) </span>
+                                                    ) : (
+                                                        <button className="test-btn" onClick={() => handleGoToTest(step, stageIndex, stepIndex)} disabled={!step.is_unlocked} >
+                                                            {step.is_unlocked ? 'Go to Test' : 'Locked'}
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </React.Fragment>
+                            ))}
+                        </div>
+                    )}
+                </main>
+            </div>
         </AnimatedPage>
     );
 }

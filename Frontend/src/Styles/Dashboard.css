@@ -9,6 +9,7 @@
   height: 100vh;
   overflow: hidden; /* Crucial: Contains the absolutely positioned canvas */
   background: transparent;
+  scrollbar-color: #9D4EDD #251245;
 }
 
 .live-background-canvas {
