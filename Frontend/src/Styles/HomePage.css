@@ -1,4 +1,3 @@
-
 /* --- Global & Body --- */
 * {
   box-sizing: border-box;
@@ -8,21 +7,43 @@
 
 body {
   font-family: 'Inter', sans-serif;
-  background-color: #0B021D; /* Dark purple-black background */
-  color: #E0E0E0; /* Light text color for contrast */
-  overflow-x: hidden;
-  background-image: radial-gradient(circle at 20% 25%, rgba(124, 77, 255, 0.15), transparent 30%),
-                    radial-gradient(circle at 80% 70%, rgba(157, 78, 221, 0.15), transparent 30%);
+  background-color: #0B021D;
+  color: #E0E0E0;
+  /* ✅ FIX: This is the most direct way to prevent all scrolling and the layout jump */
+  overflow: hidden; 
+}
+
+/* --- Canvas Styling for the Particle Web --- */
+.live-background-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1; /* Sits behind content */
+  background: linear-gradient(-45deg, #0b021d, #1f0a40, #110624, #0b021d);
+  background-size: 400% 400%;
+  animation: gradientBG 25s ease infinite;
+}
+
+@keyframes gradientBG {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 /* --- Main Layout Container --- */
 .homepage-container {
+  position: relative; 
+  z-index: 2;
   display: flex;
-  align-items: center;
+  /* ✅ FIX: Vertically centers the content perfectly within the viewport */
+  align-items: center; 
   justify-content: space-around;
-  min-height: 100vh;
-  padding: 2rem 4rem;
-  gap: 2rem;
+  /* ✅ FIX: Locks the container to the exact screen height, ensuring content fits */
+  height: 100vh;
+  padding: 2rem 4rem; /* Adjusted padding to ensure fit */
+  gap: 3rem;
 }
 
 /* --- Left Side: Intro Section --- */
@@ -31,210 +52,132 @@ body {
   animation: fadeIn 1s ease-in-out;
 }
 
-/*
-  NOTE: The image has a two-toned headlne. 
-  To achieve this, you would need to wrap "Market Intelligence" in a <span>
-  like this: <h1>Accelerate Your <span className="highlight">Market Intelligence</span></h1>
-*/
+.intro-divider {
+    position: relative;
+    width: 150px;
+    height: 4px;
+    background: #9D4EDD;
+    margin-top: 2rem;
+    border-radius: 2px;
+    transition: box-shadow 0.3s ease-in-out;
+}
+
+.intro-section:hover .intro-divider {
+    box-shadow: 0 0 15px 5px rgba(157, 78, 221, 0.7); /* Purple glow */
+}
+
+.intro-divider::before {
+    content: '';
+    position: absolute;
+    width: 70px;
+    height: 4px;
+    background: #56CFE1;
+    top: 10px;
+    left: 20px;
+    border-radius: 2px;
+    transition: box-shadow 0.3s ease-in-out;
+}
+
+.intro-section:hover .intro-divider::before {
+    box-shadow: 0 0 12px 4px rgba(86, 207, 225, 0.7); /* Cyan glow */
+}
+
 .intro-section h1 {
-  font-size: 4rem; /* Large font size */
+  font-size: 3.5rem;
   font-weight: 800;
-  line-height: 1.1;
+  line-height: 1.2;
   color: #FFFFFF;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 .intro-section h1 .highlight {
-  color: #9D4EDD; /* Vibrant purple highlight */
+  background: linear-gradient(90deg, #9D4EDD, #C77DFF);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-/* Re-styling your h3 to look like the paragraph in the image */
 .intro-section .tagline, .intro-section p {
   font-size: 1.1rem;
-  line-height: 1.6;
-  color: #A0A0B0; /* Softer grey for subtext */
-  margin-bottom: 2rem;
-  max-width: 90%;
-}
-
-.intro-section .features-list {
-  list-style: none;
-  margin-bottom: 2rem;
-}
-
-.intro-section .features-list li {
-  margin-bottom: 0.75rem;
+  line-height: 1.7;
   color: #A0A0B0;
+  margin-bottom: 1rem;
+  max-width: 95%;
 }
 
-/* Styling the button to match the "Get started" button in the image.
-  I'll give your primary button this style.
-*/
-.btn-primary {
-  background-color: #7B2CBF; /* Primary purple color */
-  color: #FFFFFF;
-  border: none;
-  border-radius: 8px;
-  padding: 14px 28px;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-  display: inline-block; /* To respect padding and margin */
-  text-align: center;
-  width: 100%;
+.features-list {
+  list-style: none;
+  margin: 1.5rem 0;
+  padding: 0;
 }
 
-.btn-primary:hover {
-  background-color: #9D4EDD;
-  transform: translateY(-2px);
+.features-list li {
+  margin-bottom: 1rem;
+  color: #A0A0B0;
+  font-size: 1.05rem;
 }
 
 /* --- Right Side: Auth Card --- */
 .auth-card {
   width: 100%;
-  max-width: 400px;
-  padding: 2rem;
-  background-color: rgba(23, 11, 49, 0.5); /* Semi-transparent dark bg */
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
+  max-width: 420px;
+  padding: 2.5rem;
+  background-color: rgba(11, 2, 29, 0.75); 
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  animation: fadeIn 1s ease-in-out 0.2s;
-  animation-fill-mode: backwards;
+  animation: fadeIn 1s ease-in-out 0.2s backwards;
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
 }
 
-.tab-buttons {
-  display: flex;
-  margin-bottom: 1.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+.auth-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
-.tab-buttons button {
-  flex: 1;
-  padding: 1rem;
-  font-size: 1rem;
-  font-weight: 500;
-  background: none;
-  border: none;
-  color: #A0A0B0;
-  cursor: pointer;
-  transition: color 0.3s ease, border-bottom 0.3s ease;
-  border-bottom: 3px solid transparent;
-}
-
-.tab-buttons button.active {
-  color: #FFFFFF;
-  border-bottom: 3px solid #9D4EDD;
-}
-
-.form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.form input {
-  background-color: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-  padding: 12px 16px;
-  color: #FFFFFF;
-  font-size: 1rem;
-}
-
-.form input::placeholder {
-  color: #888;
-}
-
-.form input:focus {
-  outline: none;
-  border-color: #9D4EDD;
-  box-shadow: 0 0 10px rgba(157, 78, 221, 0.5);
-}
-
-/* --- OTP Section --- */
-.otp-section {
-  text-align: center;
-  animation: fadeIn 0.5s ease;
-}
-
-.otp-section p {
-  margin-bottom: 1.5rem;
-  color: #A0A0B0;
-}
-
-.otp-inputs {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.otp-inputs input {
-  width: 50px;
-  height: 50px;
-  text-align: center;
-  font-size: 1.5rem;
-  font-weight: 700;
-  background-color: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-  color: #FFFFFF;
-}
-
-.otp-inputs input:focus {
-  outline: none;
-  border-color: #9D4EDD;
-  box-shadow: 0 0 10px rgba(157, 78, 221, 0.5);
-}
-
-.btn-success {
-  background-color: #2a9d8f; /* A different color for success/verify */
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 14px 28px;
-  font-size: 1rem;
-  width: 100%;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.btn-success:hover {
-  background-color: #264653;
-}
-
-/* --- Animations --- */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
+.tab-buttons { display: flex; margin-bottom: 2rem; border-bottom: 1px solid rgba(255, 255, 255, 0.2); }
+.tab-buttons button { flex: 1; padding: 1rem; font-size: 1.1rem; font-weight: 600; background: none; border: none; color: #A0A0B0; cursor: pointer; transition: all 0.3s ease; border-bottom: 4px solid transparent; transform: translateY(1px); }
+.tab-buttons button.active { color: #FFFFFF; border-bottom-color: #9D4EDD; }
+.tab-buttons button:hover { color: #FFFFFF; }
+.form { display: flex; flex-direction: column; gap: 1.25rem; }
+.form input { background-color: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 10px; padding: 14px 18px; color: #FFFFFF; font-size: 1rem; transition: all 0.3s ease; }
+.form input::placeholder { color: #888; }
+.form input:focus { outline: none; border-color: #9D4EDD; box-shadow: 0 0 15px rgba(157, 78, 221, 0.6); }
+.btn-primary, .btn-success { border: none; border-radius: 10px; padding: 16px 28px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; width: 100%; margin-top: 0.5rem; }
+.btn-primary { background-color: #7B2CBF; color: #FFFFFF; }
+.btn-primary:hover { background-color: #9D4EDD; transform: translateY(-3px); box-shadow: 0 4px 15px rgba(157, 78, 221, 0.4); }
+.otp-section { text-align: center; animation: fadeIn 0.5s ease; }
+.otp-section p { margin-bottom: 1.5rem; color: #A0A0B0; }
+.otp-inputs { display: flex; justify-content: center; gap: 1rem; margin-bottom: 2rem; }
+.otp-inputs input { width: 55px; height: 55px; text-align: center; font-size: 1.75rem; font-weight: 700; background-color: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 10px; color: #FFFFFF; transition: all 0.3s ease; }
+.otp-inputs input:focus { outline: none; border-color: #56CFE1; box-shadow: 0 0 15px rgba(86, 207, 225, 0.6); }
+.btn-success { background-color: #48BFE3; color: #0B021D; }
+.btn-success:hover { background-color: #56CFE1; transform: translateY(-3px); box-shadow: 0 4px 15px rgba(86, 207, 225, 0.4); }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
 /* --- Responsive Design --- */
 @media (max-width: 992px) {
-  .homepage-container {
-    flex-direction: column;
-    padding: 2rem;
-    text-align: center;
+  body {
+    overflow-y: auto; /* Allow scrolling on smaller screens where content might overflow */
   }
-  
+  .homepage-container {
+    height: auto; /* Let height be determined by content on mobile */
+    min-height: 100vh;
+    flex-direction: column;
+    padding: 4rem 2rem;
+    text-align: center;
+    align-items: center; /* Center content in column view */
+  }
+  .intro-divider {
+    margin-left: auto;
+    margin-right: auto;
+  }
   .intro-section {
     max-width: 100%;
     margin-bottom: 2rem;
   }
-  
   .intro-section h1 {
-    font-size: 3rem;
-  }
-
-  .intro-section .tagline, .intro-section p {
-    max-width: 100%;
+    font-size: 2.8rem;
   }
 }

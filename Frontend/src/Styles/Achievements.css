@@ -1,197 +1,339 @@
-.achievements-page {
-    font-family: 'Inter', sans-serif;
-    background-color: #0B021D;
-    color: #E0E0E0;
-    min-height: 100vh;
-    padding: 3rem;
+/* --- Global & Body --- */
+
+body {
+box-sizing: border-box;
+margin: 0;
+padding: 0;
 }
 
+body {
+font-family: 'Inter', sans-serif;
+background-color: #0B021D;
+color: #E0E0E0;
+}
+
+/* --- Canvas Styling --- */
+.live-background-canvas {
+position: absolute;
+top: 0;
+left: 0;
+z-index: 1;
+background: linear-gradient(-45deg, #0b021d, #1f0a40, #110624, #0b021d);
+background-size: 400% 400%;
+animation: gradientBG 25s ease infinite;
+}
+
+@keyframes gradientBG {
+0% { background-position: 0% 50%; }
+50% { background-position: 100% 50%; }
+100% { background-position: 0% 50%; }
+}
+
+
+.achievements-page {
+position: relative;
+overflow: hidden; /* Important for canvas positioning */
+}
+
+.achievements-content {
+position: relative;
+z-index: 2;
+max-width: 1200px;
+margin: 0 auto;
+padding: 4rem 2rem;
+min-height: 100vh;
+}
+
+/* --- Header --- */
 .achievements-header {
-    max-width: 900px;
-    margin: 0 auto 2.5rem auto;
-    text-align: center;
+text-align: center;
+margin-bottom: 3rem;
+animation: fadeIn 1s ease-in-out;
 }
 
 .achievements-title {
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: #B78BFA;
-    margin-bottom: 0.5rem;
+font-size: 2.8rem;
+font-weight: 800;
+color: #FFFFFF;
+margin-bottom: 0.5rem;
+background: linear-gradient(90deg, #9D4EDD, #C77DFF);
+-webkit-background-clip: text;
+background-clip: text;
+-webkit-text-fill-color: transparent;
 }
 
 .achievements-subtitle {
-    font-size: 1.1rem;
-    color: #A0A0B0;
+font-size: 1.1rem;
+color: #A0A0B0;
+max-width: 600px;
+margin: 0 auto 1.5rem auto; /* Added bottom margin */
 }
 
+
+.return-dashboard-btn {
+border: 2px solid #A0A0B0;
+color: #A0A0B0;
+background-color: transparent;
+border-radius: 10px;
+padding: 12px 24px;
+font-size: 1rem;
+font-weight: 600;
+cursor: pointer;
+transition: all 0.3s ease;
+display: inline-block; /* Allows margin auto to work if needed */
+}
+
+.return-dashboard-btn:hover {
+background-color: #A0A0B0;
+color: #0B021D;
+border-color: #A0A0B0;
+}
+
+/* --- Feedback (Loading/Error) --- */
+.feedback-container {
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+gap: 1.5rem;
+min-height: 200px;
+color: #A0A0B0;
+font-size: 1.1rem;
+}
+
+.error-message {
+color: #ff6b6b;
+font-weight: 600;
+background-color: rgba(255, 107, 107, 0.1);
+border: 1px solid #ff6b6b;
+padding: 1rem;
+border-radius: 10px;
+}
+
+.spinner {
+width: 50px;
+height: 50px;
+border: 5px solid rgba(255, 255, 255, 0.2);
+border-top-color: #56CFE1;
+border-radius: 50%;
+animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+to { transform: rotate(360deg); }
+}
+
+/* --- Achievements Grid & Cards --- */
 .achievements-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 2rem;
-    max-width: 900px;
-    margin: 0 auto;
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 2rem;
+align-items: start;
 }
 
 .achievement-card {
-    background-color: #1A0F30;
-    border: 1px solid #332352;
-    border-radius: 12px;
-    padding: 2rem;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+padding: 2.5rem;
+background-color: rgba(11, 2, 29, 0.75);
+border: 1px solid rgba(255, 255, 255, 0.15);
+border-radius: 20px;
+backdrop-filter: blur(10px);
+-webkit-backdrop-filter: blur(10px);
+animation: fadeIn 1s ease-in-out 0.2s backwards;
 }
 
 .achievement-card h3 {
-    font-size: 1.6rem;
-    color: #9D4EDD;
-    margin-top: 0;
-    margin-bottom: 1.5rem;
-    border-bottom: 1px solid #332352;
-    padding-bottom: 1rem;
-}
-
-.achievement-item, .analysis-item {
-    background-color: #1F1138;
-    padding: 1rem 1.5rem;
-    border-radius: 8px;
-    margin-bottom: 1rem;
-    border: 1px solid #332352;
-}
-
-.achievement-item:last-child, .analysis-item:last-child {
-    margin-bottom: 0;
-}
-
-.course-title {
-    font-weight: 600;
-    color: #fff;
-}
-
-.course-domain {
-    font-size: 0.9rem;
-    color: #A0A0B0;
-    margin-bottom: 0.5rem;
-}
-
-.score-link {
-    color: #8AFF8A;
-    font-weight: bold;
-    cursor: pointer;
-    text-decoration: none;
-    transition: color 0.2s ease;
-}
-.score-link:hover {
-    text-decoration: underline;
-    color: #a3ff8a;
-}
-
-.analysis-domain {
-    font-weight: 600;
-    color: #fff;
-    font-size: 1.1rem;
-}
-
-.analysis-date {
-    font-size: 0.85rem;
-    color: #A0A0B0;
-    float: right;
-}
-
-.analysis-skills-list {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.5rem;
-    margin-top: 0.75rem;
-    color: #A0A0B0;
-}
-
-.skill-tag-sm {
-    background-color: #332352;
-    padding: 0.3rem 0.7rem;
-    border-radius: 5px;
-    font-size: 0.85rem;
-    color: #E0E0E0;
+font-size: 1.5rem;
+color: #FFFFFF;
+border-bottom: 2px solid #56CFE1;
+padding-bottom: 1rem;
+margin-bottom: 1.5rem;
 }
 
 .no-achievements {
-    text-align: center;
-    color: #7a6c90;
-    padding: 2rem;
-    font-style: italic;
+color: #A0A0B0;
+font-style: italic;
 }
 
-/* --- Feedback containers --- */
-.feedback-container {
-    text-align: center;
-    padding: 4rem;
-}
-.spinner {
-    border: 4px solid #332352;
-    border-top: 4px solid #9D4EDD;
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    animation: spin 1s linear infinite;
-    margin: 0 auto 1rem auto;
-}
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-.error-message {
-    background-color: #581a22;
-    color: #ffcdd2;
-    border: 1px solid #e57373;
-    padding: 1rem 1.5rem;
-    border-radius: 8px;
-    display: inline-block;
-}
-.return-dashboard-btn {
-    margin-top: 1rem;
-    padding: 0.8rem 1.5rem;
-    background-color: #332352;
-    color: #E0E0E0;
-    border: 1px solid #4a3470;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 500;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-}
-.return-dashboard-btn:hover {
-    background-color: #4a3470;
-    border-color: #9D4EDD;
+/* Course Items */
+.achievement-item {
+margin-bottom: 1.5rem;
+padding-bottom: 1.5rem;
+border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+.achievement-item:last-child {
+border-bottom: none;
+margin-bottom: 0;
+padding-bottom: 0;
+}
 
-/* --- Quiz Review Modal --- */
+.course-domain {
+font-size: 0.9rem;
+color: #A0A0B0;
+font-weight: 500;
+margin-bottom: 0.25rem;
+text-transform: uppercase;
+letter-spacing: 1px;
+}
+
+.course-title {
+font-size: 1.1rem;
+font-weight: 600;
+}
+
+.score-link {
+color: #56CFE1;
+cursor: pointer;
+transition: color 0.2s ease;
+}
+
+.score-link:hover {
+color: #7ff1ff;
+text-decoration: underline;
+}
+
+/* Analysis Items */
+.analysis-item {
+background-color: rgba(0, 0, 0, 0.2);
+border-radius: 10px;
+padding: 1rem;
+margin-bottom: 1rem;
+}
+
+.analysis-item:last-child {
+margin-bottom: 0;
+}
+
+.analysis-item p {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 0.75rem;
+}
+
+.analysis-domain {
+font-weight: 600;
+color: #FFFFFF;
+}
+
+.analysis-date {
+font-size: 0.9rem;
+color: #A0A0B0;
+}
+
+.analysis-skills-list strong {
+color: #A0A0B0;
+margin-right: 0.5rem;
+}
+
+.skill-tag-sm {
+background-color: #9ac9f6;
+color: #0B021D;
+padding: 0.2rem 0.6rem;
+border-radius: 12px;
+font-size: 0.8rem;
+font-weight: 600;
+display: inline-block;
+margin: 0.25rem;
+}
+
+/* --- Modal Styling --- */
 .modal-overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background-color: rgba(0, 0, 0, 0.7); display: flex;
-    justify-content: center; align-items: center; z-index: 1000;
-    backdrop-filter: blur(5px);
-}
-.modal-content.quiz-modal {
-    background-color: #1F1138; padding: 2rem; border-radius: 12px;
-    border: 1px solid #332352; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    width: 100%; max-width: 600px; max-height: 80vh; overflow-y: auto;
+position: fixed;
+top: 0;
+left: 0;
+right: 0;
+bottom: 0;
+background-color: rgba(0, 0, 0, 0.7);
+display: flex;
+justify-content: center;
+align-items: center;
+z-index: 1000;
+padding: 1rem;
 }
 
-.modal-content.quiz-modal h2 {
-    color: #B78BFA;
-    margin-top: 0;
-    text-align: center;
+.modal-content {
+background-color: #110624;
+border: 1px solid rgba(255, 255, 255, 0.2);
+border-radius: 16px;
+padding: 2.5rem;
+width: 100%;
+max-width: 700px;
+max-height: 90vh;
+overflow-y: auto;
+animation: fadeIn 0.5s ease;
 }
+
+.modal-content h2 {
+text-align: center;
+font-size: 1.8rem;
+margin-bottom: 2rem;
+color: #C77DFF;
+}
+
+.detailed-feedback {
+text-align: left;
+margin-bottom: 2rem;
+}
+
+.feedback-item {
+padding: 1rem;
+margin-bottom: 1rem;
+border-left: 4px solid;
+border-radius: 4px;
+}
+.feedback-item.correct {
+border-color: #56CFE1;
+background-color: rgba(86, 207, 225, 0.1);
+}
+.feedback-item.incorrect {
+border-color: #ff6b6b;
+background-color: rgba(255, 107, 107, 0.1);
+}
+
+.feedback-question { font-weight: 600; margin-bottom: 0.5rem; }
+.feedback-user-answer { margin-bottom: 0.5rem; }
+.feedback-correct-answer { font-style: italic; color: #A0A0B0; }
 
 .modal-btn-close {
-    margin-top: 1.5rem; padding: 0.7rem 1.5rem; background-color: #9D4EDD;
-    color: #fff; border: none; border-radius: 8px; cursor: pointer;
-    font-weight: 600;
-    display: block;
-    width: 100%;
+display: block;
+margin: 0 auto;
+border: 2px solid #A0A0B0;
+color: #A0A0B0;
+background-color: transparent;
+border-radius: 10px;
+padding: 12px 30px;
+font-size: 1rem;
+font-weight: 600;
+cursor: pointer;
+transition: all 0.3s ease;
 }
 
-.detailed-feedback { text-align: left; }
-.feedback-item { margin-bottom: 1rem; padding: 1rem; border-radius: 8px; }
-.feedback-item.correct { background-color: rgba(138, 255, 138, 0.1); border-left: 3px solid #8AFF8A; }
-.feedback-item.incorrect { background-color: rgba(255, 138, 138, 0.1); border-left: 3px solid #FF8A8A; }
-.feedback-question { font-weight: 600; color: #FFFFFF; margin-bottom: 0.5rem; }
-.feedback-user-answer { color: #CFCFE0; font-style: italic; margin-bottom: 0.2rem; }
-.feedback-correct-answer { color: #8AFF8A; font-weight: 500; }
+.modal-btn-close:hover {
+background-color: #A0A0B0;
+color: #0B021D;
+}
+
+@keyframes fadeIn {
+from { opacity: 0; transform: translateY(20px); }
+to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Responsive Design --- */
+@media (max-width: 992px) {
+.achievements-grid {
+grid-template-columns: 1fr;
+}
+}
+
+@media (max-width: 768px) {
+.achievements-content {
+padding: 2rem 1rem;
+}
+.achievements-title {
+font-size: 2.2rem;
+}
+.achievement-card {
+padding: 1.5rem;
+}
+}

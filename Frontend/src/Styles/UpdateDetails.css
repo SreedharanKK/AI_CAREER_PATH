@@ -1,33 +1,62 @@
-/* --- Global Styles for the Page --- */
+/* --- Global & Body --- */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
 body {
   font-family: 'Inter', sans-serif;
   background-color: #0B021D;
   color: #E0E0E0;
-  background-image: radial-gradient(circle at 20% 25%, rgba(124, 77, 255, 0.1), transparent 30%),
-                    radial-gradient(circle at 80% 70%, rgba(157, 78, 221, 0.1), transparent 30%);
+  overflow-y: auto; /* Allow scrolling for the long form */
+}
+
+/* --- Canvas Styling for the Particle Web --- */
+.live-background-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1; /* Sits behind content */
+  background: linear-gradient(-45deg, #0b021d, #1f0a40, #110624, #0b021d);
+  background-size: 400% 400%;
+  animation: gradientBG 25s ease infinite;
+}
+
+@keyframes gradientBG {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 /* --- Loading State --- */
 .loading {
+  position: relative;
+  z-index: 2;
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
+  height: 100vh;
   font-size: 1.5rem;
-  color: #9D4EDD;
+  color: #FFFFFF;
 }
 
-/* --- Main Form Container --- */
+/* --- Main Form Container (Glassmorphism Card) --- */
 .update-details-container {
-  max-width: 800px;
-  margin: 4rem auto;
-  padding: 2.5rem;
-  background-color: rgba(23, 11, 49, 0.5); /* Semi-transparent dark bg */
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
+  position: relative; 
+  z-index: 2;
+  width: 100%;
+  max-width: 700px; /* Wider for a details form */
+  margin: 4rem auto; /* Center horizontally and add top/bottom margin */
+  padding: 2.5rem 3rem;
+  background-color: rgba(11, 2, 29, 0.75); 
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  animation: fadeIn 0.5s ease-in-out;
+  animation: fadeIn 1s ease-in-out;
 }
 
 .update-details-container h2 {
@@ -36,139 +65,111 @@ body {
   font-weight: 700;
   color: #FFFFFF;
   margin-bottom: 2rem;
+  background: linear-gradient(90deg, #9D4EDD, #C77DFF);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-/* --- Form Layout --- */
+/* --- Form Styling --- */
 .update-form {
-  display: grid;
-  grid-template-columns: 1fr 1fr; /* Two-column layout */
-  gap: 1.5rem; /* Space between form fields */
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
 }
 
-/* --- Form Elements Styling --- */
 .update-form label {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem; /* Space between label text and input */
   font-size: 0.9rem;
   color: #A0A0B0;
+  font-weight: 500;
 }
 
 .update-form input[type="text"],
 .update-form input[type="email"],
 .update-form input[type="date"],
 .update-form select {
-  width: 100%;
-  background-color: rgba(255, 255, 255, 0.05);
+  margin-top: 0.5rem;
+  background-color: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-  padding: 12px 16px;
+  border-radius: 10px;
+  padding: 14px 18px;
   color: #FFFFFF;
   font-size: 1rem;
-  font-family: 'Inter', sans-serif;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  transition: all 0.3s ease;
 }
 
-.update-form input::placeholder {
-  color: #888;
-}
+.update-form input::placeholder { color: #888; }
 
 .update-form input:focus,
 .update-form select:focus {
   outline: none;
   border-color: #9D4EDD;
-  box-shadow: 0 0 10px rgba(157, 78, 221, 0.5);
+  box-shadow: 0 0 15px rgba(157, 78, 221, 0.6);
 }
 
-/* Style for read-only fields */
-.update-form input[readOnly] {
+.update-form input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+}
+
+/* Read-only fields styling */
+.update-form input:read-only {
   background-color: rgba(0, 0, 0, 0.2);
-  color: #888;
+  color: #999;
   cursor: not-allowed;
 }
 
-/* Styling for the select dropdown */
-.update-form select {
-  appearance: none;
-  background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23A0A0B0%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22/%3E%3C/svg%3E');
-  background-repeat: no-repeat;
-  background-position: right 1rem center;
-  background-size: 0.65em auto;
-  padding-right: 2.5rem; /* Make space for the arrow */
-}
-
-.update-form select option {
-  background-color: #1a0f30;
-  color: #E0E0E0;
-}
-
-/* Custom styling for file input */
 .update-form input[type="file"] {
+  padding: 10px;
   font-size: 0.9rem;
-  background-color: transparent;
-  border: none;
-  padding: 0;
 }
 
 .update-form input[type="file"]::file-selector-button {
-  background-color: #3c1e63;
-  color: #fff;
+  background-color: #56CFE1;
+  color: #0B021D;
   border: none;
-  padding: 8px 12px;
   border-radius: 6px;
+  padding: 8px 12px;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.3s ease;
-  margin-right: 1rem;
+  transition: all 0.2s ease;
 }
 
 .update-form input[type="file"]::file-selector-button:hover {
-  background-color: #5a2d91;
+  background-color: #48BFE3;
 }
 
-/* --- Save Button --- */
+/* --- Button Styling --- */
 .save-btn {
-  grid-column: 1 / -1; /* Make button span both columns */
-  background-color: #7B2CBF; /* Primary purple color */
-  color: #FFFFFF;
   border: none;
-  border-radius: 8px;
-  padding: 14px 28px;
-  font-size: 1rem;
-  font-weight: 500;
+  border-radius: 10px;
+  padding: 16px 28px;
+  font-size: 1.1rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-  margin-top: 1rem;
+  transition: all 0.3s ease;
+  width: 100%;
+  margin-top: 1.5rem;
+  background-color: #7B2CBF;
+  color: #FFFFFF;
 }
 
 .save-btn:hover {
   background-color: #9D4EDD;
-  transform: translateY(-2px);
+  transform: translateY(-3px);
+  box-shadow: 0 4px 15px rgba(157, 78, 221, 0.4);
 }
 
-/* --- Animation --- */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.save-btn:disabled {
+  background-color: #555;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
-/* --- Responsive Design --- */
-@media (max-width: 768px) {
-  .update-form {
-    grid-template-columns: 1fr; /* Stack to a single column on smaller screens */
-  }
-  
-  .update-details-container {
-    margin: 2rem 1rem;
-    padding: 1.5rem;
-  }
-
-  .update-details-container h2 {
-    font-size: 1.5rem;
-  }
+@keyframes fadeIn { 
+  from { opacity: 0; transform: translateY(20px); } 
+  to { opacity: 1; transform: translateY(0); } 
 }

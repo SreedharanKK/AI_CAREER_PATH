@@ -1,250 +1,185 @@
-/* src/Styles/Dashboard.css */
-
-/* --- Main Layout (UPDATED) --- */
-.dashboard-layout {
-  display: flex;
-  font-family: 'Inter', Arial, sans-serif;
-  background-color: #0B021D;
-  color: #E0E0E0;
-  height: 100vh; /* Make the layout exactly the height of the viewport */
-  overflow: hidden; /* Prevent the entire page from scrolling */
+/* --- Wrapper & Canvas Fix --- */
+#root > div {
+  background: transparent !important;
 }
 
-/* --- Sidebar (UPDATED) --- */
+.dashboard-page-wrapper {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden; /* Crucial: Contains the absolutely positioned canvas */
+  background: transparent;
+}
+
+.live-background-canvas {
+  position: absolute; /* Changed from fixed to absolute */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1; /* Sits behind the dashboard content */
+  background: linear-gradient(-45deg, #0b021d, #1f0a40, #110624, #0b021d);
+  background-size: 400% 400%;
+  animation: gradientBG 25s ease infinite;
+}
+
+@keyframes gradientBG {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* --- Main Dashboard Layout --- */
+.dashboard-layout {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  position: relative; /* Must be positioned to establish a stacking context */
+  z-index: 2; /* Ensures content is on top of the canvas */
+  background-color: transparent;
+}
+
+/* --- Sidebar --- */
 .dashboard-sidebar {
-  width: 280px;
-  background-color: #1A0F30;
-  border-right: 1px solid #332352;
+  width: 250px;
   padding: 2rem 1.5rem;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
-  flex-shrink: 0; /* Prevent the sidebar from shrinking */
+  gap: 1.5rem;
+  background-color: rgba(11, 2, 29, 0.7);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  flex-shrink: 0;
 }
 
 .user-info {
-  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.user-icon {
-  font-size: 4rem;
-  color: #9D4EDD;
-  margin-bottom: 0.5rem;
-}
-
-.user-name {
-  font-size: 1.2rem;
-  font-weight: bold;
-  color: #fff;
-}
+.user-icon { font-size: 2.5rem; color: #c77dff; }
+.user-name { font-size: 1.1rem; font-weight: 500; color: #fff; }
 
 .sidebar-btn {
   width: 100%;
   padding: 12px;
-  margin-bottom: 1rem;
-  font-size: 1rem;
-  font-weight: 500;
-  color: #E0E0E0;
-  background-color: #332352;
-  border: 1px solid #4a3470;
+  background-color: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 8px;
+  color: #e0e0e0;
+  font-size: 1rem;
+  font-family: 'Inter', sans-serif;
   cursor: pointer;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 0.75rem;
+  transition: all 0.3s ease;
 }
 
 .sidebar-btn:hover {
-  background-color: #4a3470;
+  background-color: #7b2cbf;
+  border-color: #9d4edd;
+  transform: translateY(-2px);
 }
 
-.logout-btn {
-  margin-top: auto; /* Pushes button to the bottom */
-  color: #fff;
-  background-color: #CC4444;
-  border-color: #E05555;
-}
+.sidebar-btn-icon { font-size: 1.1rem; }
+.logout-btn { margin-top: auto; }
+.logout-btn:hover { background-color: #c9184a; border-color: #ff4d6d; }
 
-.logout-btn:hover {
-  background-color: #d9363e;
-}
-
-/* --- Main Content Area (UPDATED) --- */
+/* --- Main Content Area --- */
 .dashboard-main-content {
   flex-grow: 1;
   padding: 3rem;
-  overflow-y: auto; /* This will now create a scrollbar ONLY for this area */
-  /* The display, justify-content, and align-items properties are still needed 
-     to center the content when it's shorter than the viewport height. */
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
+  overflow-y: auto;
+  height: 100vh;
 }
 
+/* --- Card Grid --- */
 .card-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 2rem;
-  width: 100%;
-  max-width: 1100px;
 }
 
-/* --- Dashboard Card Styling --- */
 .dashboard-card {
-  background-color: #1F1138;
-  border-radius: 12px;
-  padding: 1.8rem;
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+  padding: 1.5rem 2rem;
+  background-color: rgba(23, 11, 49, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-  border: 1px solid #332352;
-}
-
-.dashboard-card.clickable {
-  cursor: pointer;
 }
 
 .dashboard-card.clickable:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3), 0 0 15px rgba(157, 78, 221, 0.2);
-  border-color: #9D4EDD;
+  transform: translateY(-8px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
 }
 
-.card-header {
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-  margin-bottom: 0.5rem;
-}
+.card-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.75rem; }
+.card-header h3 { font-size: 1.5rem; color: #fff; }
+.card-icon { font-size: 1.5rem; color: #9d4edd; }
+.card-description { color: #a0a0b0; line-height: 1.6; margin-bottom: 1.5rem; }
+.full-width { grid-column: 1 / -1; }
 
-.card-icon {
-  font-size: 1.8rem;
-  color: #9D4EDD;
-}
+/* --- Analysis Preview Snippets --- */
+.analysis-preview { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.1); }
+.analysis-preview h4 { font-size: 1rem; color: #c77dff; margin-bottom: 0.75rem; }
+.analysis-preview p { color: #d0d0d0; margin-bottom: 0.5rem; font-size: 0.9rem; }
+.analysis-preview-none { color: #888; font-style: italic; margin-top: 1.5rem; }
 
-.card-header h3 {
-  font-size: 1.4rem;
-  font-weight: 600;
-  color: #FFFFFF;
-}
-
-.card-description {
-  font-size: 0.95rem;
-  color: #A0A0B0;
-  line-height: 1.5;
-}
-
-.dashboard-card.full-width {
-  grid-column: 1 / -1;
-}
-
-/* --- Analysis Preview on Card --- */
-.analysis-preview {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid #332352;
-}
-
-.analysis-preview h4 {
-  color: #B78BFA;
-  font-size: 0.9rem;
-  margin-bottom: 0.5rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.analysis-preview p {
-  font-size: 0.9rem;
-  color: #A0A0B0;
-  margin: 0.25rem 0;
-  line-height: 1.4;
-}
-
-.analysis-preview-none {
-  margin-top: 1rem;
-  font-size: 0.9rem;
-  color: #7a6c90;
-  font-style: italic;
-}
-
-
-/* --- Profile Details Section --- */
+/* --- Profile Details View --- */
 .profile-details {
-  background-color: #1F1138;
-  border: 1px solid #332352;
-  border-radius: 12px;
   padding: 2.5rem;
-  width: 100%;
+  background-color: rgba(23, 11, 49, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   max-width: 800px;
-  color: #E0E0E0;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3), 0 0 15px rgba(157, 78, 221, 0.15);
-  animation: fadeInUp 0.5s ease;
+  margin: 0 auto;
+  animation: fadeIn 0.5s ease;
 }
 
-.profile-details h2 {
-  font-size: 1.8rem;
-  color: #B78BFA;
-  margin-bottom: 1.5rem;
-  text-align: center;
-  letter-spacing: 1px;
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.profile-details p {
-  font-size: 1rem;
-  margin-bottom: 0.75rem;
-  line-height: 1.5;
-  color: #CFCFE0;
-}
+.profile-details h2 { text-align: center; font-size: 2rem; margin-bottom: 2rem; color: #fff; }
+.profile-details p { font-size: 1.1rem; margin-bottom: 1rem; line-height: 1.7; color: #e0e0e0; }
+.profile-details p strong { color: #c77dff; min-width: 150px; display: inline-block; }
 
-.profile-details strong {
-  color: #9D4EDD;
-  margin-right: 0.5rem;
-}
-
-.resume-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.25rem;
-  background-color: #332352;
-  border: 1px solid #4a3470;
-  border-radius: 8px;
-  text-decoration: none;
-  font-weight: 500;
-  color: #E0E0E0;
-  transition: all 0.3s ease;
-  margin-top: 1.2rem;
-}
-
-.resume-btn:hover {
-  background-color: #9D4EDD;
-  color: #fff;
-  box-shadow: 0 0 10px rgba(157, 78, 221, 0.6);
-}
-
-.update-btn {
-  margin-top: 2rem;
+.update-btn, .resume-btn {
   display: block;
   width: 100%;
-  padding: 0.9rem;
-  background-color: #9D4EDD;
+  max-width: 300px;
+  margin: 2rem auto 0 auto;
+  text-align: center;
+  padding: 14px;
+  background-color: #7b2cbf;
   border: none;
-  border-radius: 10px;
+  border-radius: 8px;
   color: #fff;
-  font-weight: 600;
-  font-size: 1rem;
+  font-size: 1.1rem;
+  font-family: 'Inter', sans-serif;
   cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
+  transition: all 0.3s ease;
+  text-decoration: none;
 }
 
-.update-btn:hover {
-  background-color: #B88BFA;
+.update-btn:hover, .resume-btn:hover {
+  background-color: #9d4edd;
   transform: translateY(-3px);
+  box-shadow: 0 4px 15px rgba(157, 78, 221, 0.4);
 }
 
-/* --- Logout Modal Styling --- */
+/* --- Modal Styles --- */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -260,139 +195,26 @@
 }
 
 .modal-content {
-  background-color: #1F1138;
+  background-color: #1c0a3a;
   padding: 2rem;
   border-radius: 12px;
-  border: 1px solid #332352;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   text-align: center;
-  width: 100%;
   max-width: 400px;
-  animation: fadeIn 0.3s ease-out;
+  width: 90%;
 }
 
-.modal-content h2 {
-  color: #FFFFFF;
-  margin-top: 0;
-  margin-bottom: 1rem;
-}
+.modal-content h2 { margin-bottom: 1rem; }
+.modal-content p { margin-bottom: 2rem; color: #a0a0b0; }
+.modal-actions { display: flex; gap: 1rem; justify-content: center; }
+.modal-btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; transition: background-color 0.3s ease; }
+.modal-btn-cancel { background-color: #555; color: white; }
+.modal-btn-cancel:hover { background-color: #666; }
+.modal-btn-confirm { background-color: #c9184a; color: white; }
+.modal-btn-confirm:hover { background-color: #ff4d6d; }
 
-.modal-content p {
-  color: #A0A0B0;
-  margin-bottom: 2rem;
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-}
-
-.modal-btn {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.modal-btn-confirm {
-  background-color: #CC4444;
-  color: #fff;
-}
-
-.modal-btn-confirm:hover {
-  background-color: #E05555;
-}
-
-.modal-btn-cancel {
-  background-color: #4a3470;
-  color: #fff;
-}
-
-.modal-btn-cancel:hover {
-  background-color: #5f448b;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-/* --- Animation for smooth entry --- */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* --- Responsive Design --- */
-@media (max-width: 992px) {
-  .dashboard-layout {
-    flex-direction: column;
-    height: auto; /* Allow height to adjust on mobile */
-    min-height: 100vh;
-    overflow: visible; /* Reset overflow for mobile */
-  }
-
-  .dashboard-sidebar {
-    width: 100%;
-    height: auto;
-    flex-direction: row;
-    justify-content: space-between;
-    padding: 1rem 1.5rem;
-  }
-  
-  .sidebar-btn {
-    width: auto;
-    margin-bottom: 0;
-  }
-  
-  .logout-btn {
-    margin-top: 0;
-  }
-  
-  .dashboard-main-content {
-      overflow-y: visible; /* Reset overflow for mobile */
-  }
-
+@media (max-width: 1200px) {
   .card-grid {
     grid-template-columns: 1fr;
   }
-  
-  .dashboard-card.full-width {
-    grid-column: 1;
-  }
 }
-
-@media (max-width: 768px) {
-  .profile-details {
-    padding: 1.5rem;
-  }
-
-  .profile-details h2 {
-    font-size: 1.5rem;
-  }
-
-  .profile-details p {
-    font-size: 0.95rem;
-  }
-
-  .update-btn {
-    font-size: 0.95rem;
-  }
-}
-

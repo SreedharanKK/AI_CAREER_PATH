@@ -1,25 +1,26 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from 'react-router-dom';
+import AnimatedPage from "../hooks/AnimatedPage";
 import '../Styles/SkillGapAnalysis.css';
-import { useApi } from '../hooks/useApi'; // ✅ Import hook
+import { useApi } from '../hooks/useApi';
+import useParticleBackground from "../hooks/UseParticleBackground";
 
 export default function SkillGapAnalysis() {
     const navigate = useNavigate();
     const [editedSkills, setEditedSkills] = useState("");
     const [domain, setDomain] = useState("");
     const [analysisResult, setAnalysisResult] = useState(null);
+    const canvasRef = useRef(null); // ADDED: Ref for the canvas element
     
-    // ✅ Use the hook
     const { apiFetch, isLoading, error, setError } = useApi();
+    useParticleBackground(canvasRef);
 
     useEffect(() => {
         const fetchInitialData = async () => {
-            // Fetch skills and last domain in parallel
             const [skillsData, domainData] = await Promise.all([
                 apiFetch(`/api/user/skill-gap/skills`),
                 apiFetch(`/api/user/skill-gap/last-domain`)
             ]);
-
             if (skillsData?.skills) {
                 setEditedSkills(skillsData.skills.join(", "));
             }
@@ -28,7 +29,7 @@ export default function SkillGapAnalysis() {
             }
         };
         fetchInitialData();
-    }, []); // Run only on mount
+    }, [apiFetch]); // Dependency array should include apiFetch
 
     const fetchLatestAnalysis = useCallback(async (selectedDomain) => {
         if (!selectedDomain) {
@@ -55,92 +56,77 @@ export default function SkillGapAnalysis() {
             method: "POST",
             body: JSON.stringify({ skills: skillsArray, domain })
         });
-
         if (data) {
             setAnalysisResult(data);
         }
     };
 
     return (
-        <div className="skill-gap-container">
-            <div className="skill-gap-header">
-                <h2>Skill Gap Analysis</h2>
-                <button className="return-btn" onClick={() => navigate('/dashboard')}>Return to Dashboard</button>
-            </div>
-            
-            {error && <div className="error-message">{error}</div>}
+        <AnimatedPage>
+            <div className="skill-gap-page">
+            <canvas ref={canvasRef} className="live-background-canvas"></canvas>
+            <div className="skill-gap-container">
+                <div className="skill-gap-header">
+                    <h2>Skill Gap Analysis</h2>
+                    <p>Enter your skills and select a domain to get an AI-powered analysis.</p>
+                </div>
+                
+                {error && <div className="error-message">{error}</div>}
 
-            <label>Your Combined Skills (from Profile & Resume):</label>
-            <textarea
-                value={editedSkills}
-                onChange={(e) => setEditedSkills(e.target.value)}
-                className="skills-textarea"
-                placeholder={isLoading ? "Loading your skills..." : "Your skills will appear here"}
-            />
+                <label>Your Combined Skills (from Profile & Resume):</label>
+                <textarea
+                    value={editedSkills}
+                    onChange={(e) => setEditedSkills(e.target.value)}
+                    className="skills-textarea"
+                    placeholder={isLoading && !editedSkills ? "Loading your skills..." : "Enter skills separated by commas"}
+                />
 
-            <label>Select Your Interested Domain:</label>
-            <select value={domain} onChange={(e) => setDomain(e.target.value)} className="domain-select">
-                <option value="">-- Select Your Career Path --</option>
-                <optgroup label="Web & App Development">
-                    <option value="Frontend Developer">Frontend Developer</option>
-                    <option value="Backend Developer">Backend Developer</option>
-                    <option value="Full Stack Developer">Full Stack Developer</option>
-                    <option value="Android Developer">Android Developer</option>
-                    <option value="iOS Developer">iOS Developer</option>
-                </optgroup>
-                <optgroup label="AI, Data Science & ML">
-                    <option value="AI and Machine Learning Engineer">AI and Machine Learning Engineer</option>
-                    <option value="Data Scientist">Data Scientist</option>
-                    <option value="Data Analyst">Data Analyst</option>
-                    <option value="Data Engineer">Data Engineer</option>
-                </optgroup>
-                <optgroup label="Cloud & DevOps">
-                    <option value="DevOps Engineer">DevOps Engineer</option>
-                    <option value="Cloud Platform Engineer (AWS, Azure, or GCP)">Cloud Platform Engineer</option>
-                </optgroup>
-                <optgroup label="Cyber Security">
-                    <option value="Cyber Security Analyst">Cyber Security Analyst</option>
-                    <option value="Penetration Tester (Ethical Hacking)">Penetration Tester</option>
-                </optgroup>
-                <optgroup label="Specialized Engineering">
-                    <option value="Blockchain Developer">Blockchain Developer</option>
-                    <option value="Game Developer">Game Developer</option>
-                    <option value="Software Quality Assurance (QA) Engineer">QA Engineer</option>
-                </optgroup>
-            </select>
+                <label>Select Your Interested Domain:</label>
+                <select value={domain} onChange={(e) => setDomain(e.target.value)} className="domain-select">
+                    <option value="">-- Select Your Career Path --</option>
+                    <optgroup label="Web & App Development"> <option value="Frontend Developer">Frontend Developer</option> <option value="Backend Developer">Backend Developer</option> <option value="Full Stack Developer">Full Stack Developer</option> <option value="Android Developer">Android Developer</option> <option value="iOS Developer">iOS Developer</option> </optgroup>
+                    <optgroup label="AI, Data Science & ML"> <option value="AI and Machine Learning Engineer">AI and Machine Learning Engineer</option> <option value="Data Scientist">Data Scientist</option> <option value="Data Analyst">Data Analyst</option> <option value="Data Engineer">Data Engineer</option> </optgroup>
+                    <optgroup label="Cloud & DevOps"> <option value="DevOps Engineer">DevOps Engineer</option> <option value="Cloud Platform Engineer (AWS, Azure, or GCP)">Cloud Platform Engineer</option> </optgroup>
+                    <optgroup label="Cyber Security"> <option value="Cyber Security Analyst">Cyber Security Analyst</option> <option value="Penetration Tester (Ethical Hacking)">Penetration Tester</option> </optgroup>
+                    <optgroup label="Specialized Engineering"> <option value="Blockchain Developer">Blockchain Developer</option> <option value="Game Developer">Game Developer</option> <option value="Software Quality Assurance (QA) Engineer">QA Engineer</option> </optgroup>
+                </select>
 
-            <button className="analyze-btn" onClick={handleAnalyze} disabled={isLoading || !domain}>
-                {isLoading ? 'Analyzing...' : 'Analyze with AI'}
-            </button>
+                <div className="actions-footer">
+                    <button className="return-btn" onClick={() => navigate('/dashboard')}>Return to Dashboard</button>
+                    <button className="analyze-btn" onClick={handleAnalyze} disabled={isLoading || !domain}>
+                        {isLoading ? 'Analyzing...' : 'Analyze with AI'}
+                    </button>
+                </div>
 
-            {isLoading && <div className="loading-spinner"></div>}
+                {isLoading && !analysisResult && <div className="loading-spinner"><div className="spinner"></div></div>}
 
-            {analysisResult && (
-                <div className="analysis-result">
-                    <h3>Analysis Results for {analysisResult.interested_domain || domain}</h3>
-                    <div className="result-section">
-                        <h4>Missing Skills:</h4>
-                        <div className="missing-skills-container">
-                            {analysisResult.missing_skills?.length > 0 ? (
-                                analysisResult.missing_skills.map((skill, i) => (
-                                    <span key={i} className="skill-tag">{skill}</span>
-                                ))
-                            ) : (
-                                <p>None! You're on the right track for this domain.</p>
-                            )}
+                {analysisResult && (
+                    <div className="analysis-result">
+                        <h3>Analysis Results for {analysisResult.interested_domain || domain}</h3>
+                        <div className="result-section">
+                            <h4><span className="result-icon">🎯</span>Missing Skills:</h4>
+                            <div className="missing-skills-container">
+                                {analysisResult.missing_skills?.length > 0 ? (
+                                    analysisResult.missing_skills.map((skill, i) => (
+                                        <span key={i} className="skill-tag">{skill}</span>
+                                    ))
+                                ) : (
+                                    <p>None! You're on the right track for this domain.</p>
+                                )}
+                            </div>
+                        </div>
+                        <div className="result-section">
+                            <h4><span className="result-icon">💡</span>AI Recommendations:</h4>
+                            <ul>
+                                {analysisResult.recommendations?.map((rec, i) => (
+                                    <li key={i}>{rec}</li>
+                                ))}
+                            </ul>
                         </div>
                     </div>
-                    <div className="result-section">
-                        <h4>AI Recommendations:</h4>
-                        <ul>
-                            {analysisResult.recommendations?.map((rec, i) => (
-                                <li key={i}>{rec}</li>
-                            ))}
-                        </ul>
-                    </div>
-                </div>
-            )}
+                )}
+            </div>
         </div>
+        </AnimatedPage>
     );
 }
-
