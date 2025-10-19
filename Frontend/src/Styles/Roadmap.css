@@ -36,6 +36,7 @@
     padding: 3rem;
     display: flex;
     transition: all 0.5s ease-in-out;
+    
 }
 
 /* --- STATE 1: Initial Centered Layout --- */
@@ -68,11 +69,17 @@
     max-width: 700px;
 }
 
+/* --- ✅ THIS IS THE CORRECTED RULE --- */
 .roadmap-page-container.layout-shifted .roadmap-controls {
     width: 320px;
     position: sticky;
     top: 3rem;
     flex-shrink: 0;
+    max-height: calc(100vh - 6rem); /* Limits height to viewport minus top/bottom padding */
+    overflow-y: auto;               /* Adds a scrollbar ONLY if content is too tall */
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: #9D4EDD #110624;
 }
 
 .roadmap-main-content {
@@ -204,9 +211,6 @@
     margin-bottom: 0;
 }
 
-/***************************************/
-/* ✅ FIX: NORMAL LOADING SPINNER STYLES */
-/***************************************/
 .loading-spinner, .no-roadmap-placeholder {
     padding: 4rem;
     display: flex;
@@ -218,23 +222,21 @@
     font-size: 1.2rem;
 }
 
-/* This is the key fix to make the spinner a perfect circle */
 .spinner {
     border: 5px solid #332352;
     border-top: 5px solid #9D4EDD;
     border-radius: 50%;
-    width: 60px;  /* Width and height MUST be equal */
+    width: 60px;
     height: 60px;
     animation: spin 1s linear infinite;
     margin-bottom: 1.5rem;
-    flex-shrink: 0; /* Prevents flexbox from distorting the shape */
+    flex-shrink: 0;
 }
 
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
-/***************************************/
 
 .roadmap-error {
     padding: 1rem;
@@ -252,6 +254,9 @@
     .roadmap-page-container.layout-shifted .roadmap-controls {
         width: 100%;
         position: static;
+        max-height: none; /* Reset max-height for mobile view */
+        overflow-y: visible; /* Reset overflow for mobile view */
+        
     }
 }
 
@@ -340,4 +345,143 @@
 .return-btn-roadmap:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+}
+
+/* --- Styles for New Multi-Roadmap UI --- */
+
+.active-roadmaps-box {
+    width: 100%;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid #332352;
+    padding-bottom: 2rem;
+}
+
+.active-roadmaps-title,
+.generate-roadmap-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #E0E0E0;
+    text-align: left;
+    margin-bottom: 1rem;
+}
+
+.no-active-roadmaps {
+    font-size: 0.9rem;
+    color: #7a6c90;
+    text-align: center;
+    font-style: italic;
+}
+
+.roadmap-card {
+    width: 100%;
+    background-color: #0B021D;
+    border: 1px solid #332352;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.3s ease;
+    color: #E0E0E0;
+    font-family: 'Inter', sans-serif; /* Ensure font is inherited */
+}
+
+.roadmap-card:hover:not(:disabled) {
+    background-color: #1F1138;
+    border-color: #9D4EDD;
+}
+
+.roadmap-card:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.roadmap-card.active {
+    background-color: #1F1138;
+    border-color: #B78BFA;
+    box-shadow: 0 0 15px rgba(183, 139, 250, 0.3);
+}
+
+.roadmap-card-domain {
+    font-size: 1rem;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 0.75rem;
+}
+
+/* --- Completion Bar Styles --- */
+.completion-bar-container {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.completion-bar-track {
+    flex-grow: 1;
+    height: 8px;
+    background-color: #0B021D;
+    border: 1px solid #332352;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.completion-bar-fill {
+    height: 100%;
+    background-color: #8AFF8A; /* Green for completion */
+    border-radius: 4px;
+    transition: width 0.5s ease;
+}
+
+.completion-bar-text {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #8AFF8A;
+    flex-shrink: 0;
+}
+
+/* --- Generate New Box --- */
+.generate-roadmap-box {
+    width: 100%;
+}
+
+.generate-roadmap-box .roadmap-subtitle {
+    text-align: left;
+    margin-bottom: 1rem;
+    font-size: 0.95rem; /* Match existing subtitle */
+}
+
+/* --- Original Styles Modifications --- */
+.roadmap-controls {
+    text-align: left; /* Change from center */
+}
+
+.roadmap-title {
+    text-align: center; /* Keep title centered */
+    margin-bottom: 2rem; /* Add space below main title */
+}
+
+/* --- FIX 2: Style scrollbar for Chrome, Safari, Edge --- */
+
+/* Sets the width of the scrollbar */
+.roadmap-page-container.layout-shifted .roadmap-controls::-webkit-scrollbar {
+    width: 10px;
+}
+
+/* This is the "track" (the background of the scrollbar) */
+.roadmap-page-container.layout-shifted .roadmap-controls::-webkit-scrollbar-track {
+    background: #110624; /* A dark color from your page gradient */
+    border-radius: 10px;
+}
+
+/* This is the "thumb" (the part you drag) */
+.roadmap-page-container.layout-shifted .roadmap-controls::-webkit-scrollbar-thumb {
+    background-color: #9D4EDD; /* Your main accent purple */
+    border-radius: 10px;
+    /* Creates a small "padding" around the thumb */
+    border: 2px solid #110624; 
+}
+
+/* Make the thumb lighter on hover */
+.roadmap-page-container.layout-shifted .roadmap-controls::-webkit-scrollbar-thumb:hover {
+    background-color: #B88BFA;
 }
