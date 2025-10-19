@@ -8,7 +8,33 @@ from api_config import gemini_model
 
 roadmap_bp = Blueprint('roadmap', __name__)
 
-# --- Helper function to apply progress to a roadmap ---
+# --- NEW: Helper function to calculate completion percentage ---
+def _get_roadmap_completion(user_id, roadmap_id, roadmap_data, cur):
+    """Calculates the completion percentage for a given roadmap."""
+    total_steps = 0
+    if not isinstance(roadmap_data, dict) or 'roadmap' not in roadmap_data:
+        return 0 # Invalid roadmap structure
+    
+    for stage in roadmap_data.get('roadmap', []):
+        total_steps += len(stage.get('steps', []))
+
+    if total_steps == 0:
+        return 0 # No steps in the roadmap
+
+    try:
+        cur.execute(
+            "SELECT COUNT(*) as completed_count FROM user_roadmap_progress WHERE user_id = %s AND roadmap_id = %s AND is_completed = 1",
+            (user_id, roadmap_id)
+        )
+        result = cur.fetchone()
+        completed_steps = result['completed_count'] if result else 0
+        
+        return round((completed_steps / total_steps) * 100)
+    except Exception as e:
+        print(f"Error calculating completion: {e}")
+        return 0
+
+# --- Helper function to apply progress to a roadmap (Unchanged) ---
 def _apply_progress_to_roadmap(user_id, roadmap_id, roadmap_data, cur, conn): 
     """
     Fetches user's progress for a given roadmap and merges it into the roadmap structure.
@@ -50,11 +76,8 @@ def _apply_progress_to_roadmap(user_id, roadmap_id, roadmap_data, cur, conn):
                 step['is_completed'] = False
                 step['test_score'] = None
             
-            # Ensure the very first step of the *entire* roadmap is always unlocked
-            # if no progress has been recorded for any step yet.
             if is_first_step_in_overall_roadmap and not overall_progress_exists:
                 step['is_unlocked'] = True
-                # Also, insert this initial progress into DB to reflect it
                 try:
                     cur.execute(
                         "INSERT INTO user_roadmap_progress (user_id, roadmap_id, stage_index, step_index, is_unlocked) VALUES (%s, %s, %s, %s, %s)",
@@ -62,25 +85,24 @@ def _apply_progress_to_roadmap(user_id, roadmap_id, roadmap_data, cur, conn):
                     )
                     conn.commit()
                 except Exception as e:
-                    # Ignore 'duplicate entry' errors if it was inserted concurrently
                     if "Duplicate entry" not in str(e): 
                         print(f"Warning: Could not insert initial unlocked status for step {key}: {e}")
                     conn.rollback() # Rollback on error if it's not a duplicate
             
             is_first_step_in_overall_roadmap = False
     
-    # MODIFIED: Return the full structure expected by the frontend
     return {
         "id": roadmap_id,
         "roadmap": roadmap_with_progress['roadmap']
     }
 
 
+# --- MODIFIED: /generate-roadmap ---
 @roadmap_bp.route('/generate-roadmap', methods=['POST'])
 def generate_roadmap():
     """
-    Generates a structured, high-quality learning roadmap with study links,
-    inspired by roadmap.sh, using the Gemini API.
+    Generates a new roadmap if one doesn't exist, or refreshes an existing one.
+    Enforces a limit of 2 total roadmaps per user.
     """
     token = request.cookies.get("token")
     if not token:
@@ -104,7 +126,7 @@ def generate_roadmap():
     if not conn:
         return jsonify({"error": "Database connection failed."}), 500
     
-    cur = conn.cursor()
+    cur = conn.cursor(dictionary=True) # Use dictionary cursor
     try:
         # --- Check if a roadmap already exists for this user and domain ---
         cur.execute(
@@ -114,13 +136,19 @@ def generate_roadmap():
         existing_roadmap_record = cur.fetchone()
 
         if existing_roadmap_record:
-            roadmap_id = existing_roadmap_record[0]
-            existing_roadmap_data = json.loads(existing_roadmap_record[1])
+            roadmap_id = existing_roadmap_record['id']
+            existing_roadmap_data = json.loads(existing_roadmap_record['roadmap'])
             # If exists, apply current progress and return
-            return jsonify(_apply_progress_to_roadmap(user_id, roadmap_id, existing_roadmap_data, conn.cursor(dictionary=True), conn)), 200
+            return jsonify(_apply_progress_to_roadmap(user_id, roadmap_id, existing_roadmap_data, cur, conn)), 200
 
+        # --- If it doesn't exist, check if user is at their 2-roadmap limit ---
+        cur.execute("SELECT COUNT(*) as count FROM roadmaps WHERE user_id = %s", (user_id,))
+        roadmap_count = cur.fetchone()['count']
+        
+        if roadmap_count >= 2:
+            return jsonify({"error": "You can only have 2 active roadmaps at a time. Please delete one to add another."}), 403 # 403 Forbidden
 
-        # --- AI Prompt Engineering for a Structured Roadmap ---
+        # --- AI Prompt Engineering (Unchanged) ---
         prompt = f"""
         You are a senior technical curriculum designer who creates world-class learning roadmaps similar to those found on roadmap.sh.
         Your task is to generate a detailed, step-by-step learning roadmap for an aspiring '{domain}'.
@@ -148,18 +176,6 @@ def generate_roadmap():
                   "description": "Understand the fundamental structure of all web pages.",
                   "resource_type": "Documentation",
                   "study_link": "https://developer.mozilla.org/en-US/docs/Web/HTML"
-                }},
-                {{
-                  "title": "Learn CSS Basics",
-                  "description": "Learn how to style web pages to make them visually appealing.",
-                  "resource_type": "Video Tutorial",
-                  "study_link": "https://www.youtube.com/watch?v=1Rs2ND1ryYc"
-                }},
-                {{
-                  "title": "Build a Tribute Page",
-                  "description": "Apply your HTML and CSS knowledge to build your first simple project.",
-                  "resource_type": "Project Idea",
-                  "study_link": "https://www.freecodecamp.org/learn/responsive-web-design/responsive-web-design-projects/build-a-tribute-page"
                 }}
               ]
             }}
@@ -167,38 +183,40 @@ def generate_roadmap():
         }}
         """
 
-        # --- Call the AI and process the response ---
+        # --- Call the AI and process the response (Unchanged) ---
         response = gemini_model.generate_content(prompt)
         cleaned_response_text = re.sub(r'```(json)?|```', '', response.text).strip()
         roadmap_data = json.loads(cleaned_response_text)
 
-        # --- Save the newly generated roadmap to the database ---
+        # --- Save the newly generated roadmap to the database (Unchanged) ---
         cur.execute(
             "INSERT INTO roadmaps (user_id, domain, roadmap) VALUES (%s, %s, %s)",
             (user_id, domain, json.dumps(roadmap_data))
         )
         conn.commit()
         
-        # Get the ID of the newly inserted roadmap
-        roadmap_id = cur.lastrowid
+        roadmap_id = cur.lastrowid # Get the ID of the new roadmap
 
         # Apply initial progress (unlock first step) and return
-        return jsonify(_apply_progress_to_roadmap(user_id, roadmap_id, roadmap_data, conn.cursor(dictionary=True), conn)), 200
+        return jsonify(_apply_progress_to_roadmap(user_id, roadmap_id, roadmap_data, cur, conn)), 200
 
     except Exception as e:
         conn.rollback()
-        print(f"❌ Error generating roadmap: {e}")
+        print(f"❌ Error in generate_roadmap: {e}")
+        # Check for unique constraint violation (from our new SQL rule)
+        if "Duplicate entry" in str(e):
+             return jsonify({"error": f"A roadmap for {domain} already exists."}), 409 # 409 Conflict
         return jsonify({"error": "Failed to generate roadmap due to an internal error."}), 500
     finally:
         cur.close()
         conn.close()
 
 
+# --- Endpoint /get-user-roadmap (Unchanged) ---
 @roadmap_bp.route('/get-user-roadmap', methods=['GET'])
 def get_user_roadmap():
     """
-    Fetches the user's saved roadmap for a specific domain, merging it with their progress.
-    If no roadmap exists, it returns an empty response.
+    Fetches a user's saved roadmap for a *specific domain* and merges it with their progress.
     """
     token = request.cookies.get("token")
     if not token:
@@ -218,7 +236,7 @@ def get_user_roadmap():
     if not conn:
         return jsonify({"error": "Database connection failed."}), 500
     
-    cur = conn.cursor(dictionary=True) # Use dictionary cursor for easier access
+    cur = conn.cursor(dictionary=True) # Use dictionary cursor
     try:
         cur.execute(
             "SELECT id, roadmap FROM roadmaps WHERE user_id = %s AND domain = %s",
@@ -242,11 +260,11 @@ def get_user_roadmap():
         conn.close()
 
 
-# --- NEW: Endpoint to get the last generated domain ---
-@roadmap_bp.route('/get-last-generated-domain', methods=['GET'])
-def get_last_generated_domain():
+# --- NEW: Endpoint to get all active roadmaps with completion % ---
+@roadmap_bp.route('/get-all-active-roadmaps', methods=['GET'])
+def get_all_active_roadmaps():
     """
-    Fetches the domain of the most recently created roadmap for the user.
+    Fetches all roadmaps for the user, along with their completion percentage.
     """
     token = request.cookies.get("token")
     if not token:
@@ -265,20 +283,28 @@ def get_last_generated_domain():
     cur = conn.cursor(dictionary=True)
     try:
         cur.execute(
-            "SELECT domain FROM roadmaps WHERE user_id = %s ORDER BY created_at DESC LIMIT 1",
+            "SELECT id, domain, roadmap FROM roadmaps WHERE user_id = %s ORDER BY created_at DESC",
             (user_id,)
         )
-        last_domain_record = cur.fetchone()
+        all_roadmaps = cur.fetchall()
+        
+        roadmap_summaries = []
+        for r in all_roadmaps:
+            # Need to load the JSON to count total steps
+            roadmap_data = json.loads(r['roadmap']) 
+            completion_percentage = _get_roadmap_completion(user_id, r['id'], roadmap_data, cur)
+            
+            roadmap_summaries.append({
+                "id": r['id'],
+                "domain": r['domain'],
+                "completion_percentage": completion_percentage
+            })
 
-        if last_domain_record:
-            return jsonify({"last_domain": last_domain_record['domain']}), 200
-        else:
-            return jsonify({"last_domain": None}), 200
+        return jsonify(roadmap_summaries), 200
 
     except Exception as e:
-        print(f"❌ Error fetching last generated domain: {e}")
-        return jsonify({"error": "An error occurred while fetching last domain."}), 500
+        print(f"❌ Error fetching all active roadmaps: {e}")
+        return jsonify({"error": "An error occurred while fetching your roadmaps."}), 500
     finally:
         cur.close()
         conn.close()
-
