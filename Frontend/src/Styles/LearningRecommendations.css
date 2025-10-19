@@ -1,151 +1,170 @@
-/* --- Main Page Container --- */
-.recs-page-container {
+/* --- Global & Animation --- */
+body {
     font-family: 'Inter', sans-serif;
-    background-color: #0B021D;
     color: #E0E0E0;
-    min-height: 100vh;
-    padding: 3rem;
+    overflow-y: auto; /* Allow scrolling */
 }
 
-/* --- Header Section --- */
+.live-background-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    background: linear-gradient(-45deg, #0b021d, #1f0a40, #110624, #0b021d);
+    background-size: 400% 400%;
+    animation: gradientBG 25s ease infinite;
+}
+
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* --- Page & Content Wrapper --- */
+.recs-page-container {
+    position: relative; /* Needed for z-index context */
+    min-height: 100vh;
+}
+
+.recs-content-wrapper {
+    position: relative;
+    z-index: 2; /* Ensures content is above the canvas */
+    padding: 3rem 4rem;
+    animation: fadeIn 0.8s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Header --- */
 .recs-header {
-    max-width: 900px;
-    margin: 0 auto 2rem auto;
     text-align: center;
+    margin-bottom: 2rem;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .recs-title {
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: #B78BFA;
+    font-size: 3rem;
+    font-weight: 800;
     margin-bottom: 0.5rem;
+    background: linear-gradient(90deg, #9D4EDD, #C77DFF);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 .recs-subtitle {
     font-size: 1.1rem;
     color: #A0A0B0;
-    margin-bottom: 1.5rem;
-    line-height: 1.6;
+    margin-bottom: 1rem;
 }
 
 .user-profile-info {
     display: inline-block;
-    background-color: #1A0F30;
+    background-color: rgba(255, 255, 255, 0.1);
     padding: 0.5rem 1.2rem;
-    border-radius: 8px;
-    border: 1px solid #332352;
+    border-radius: 20px;
     font-size: 0.95rem;
-    font-weight: 500;
+    color: #E0E0E0;
 }
 
-.user-profile-info strong {
-    color: #9D4EDD;
-}
-
-/* --- Action Buttons (UPDATED) --- */
+/* --- Actions & Buttons --- */
 .recs-actions {
-    max-width: 900px;
-    margin: 0 auto 2.5rem auto;
-    display: flex; /* Use flexbox for alignment */
-    justify-content: center; /* Center the buttons horizontally */
-    gap: 1rem; /* Add space between the buttons */
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+}
+
+.refresh-btn, .return-dashboard-btn {
+    border: none;
+    border-radius: 10px;
+    padding: 15px 210px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
 }
 
 .refresh-btn {
-    padding: 0.8rem 1.5rem;
-    font-size: 1rem;
-    font-weight: 600;
-    color: #fff;
-    background-color: #9D4EDD;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s ease;
+    background-color: #7B2CBF;
+    color: #FFFFFF;
 }
 
-.refresh-btn:hover:not(:disabled) {
-    background-color: #B88BFA;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(157, 78, 221, 0.3);
+.refresh-btn:hover {
+    background-color: #9D4EDD;
+    transform: translateY(-3px);
+    box-shadow: 0 4px 15px rgba(157, 78, 221, 0.4);
 }
 
 .refresh-btn:disabled {
-    background-color: #4a3470;
+    background-color: #333;
     cursor: not-allowed;
 }
 
-/* --- Return to Dashboard Button (UPDATED) --- */
 .return-dashboard-btn {
-    padding: 0.8rem 1.5rem;
-    background-color: #332352;
+    background-color: rgba(255, 255, 255, 0.1);
     color: #E0E0E0;
-    border: 1px solid #4a3470;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 500;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-    margin-top: 0; /* No longer needed as gap is used */
 }
 
 .return-dashboard-btn:hover {
-    background-color: #4a3470;
-    border-color: #9D4EDD;
+    background-color: rgba(255, 255, 255, 0.2);
 }
 
-/* --- Recommendations Grid & Cards --- */
+/* --- Recommendations Grid --- */
 .recommendations-grid {
     display: grid;
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-    max-width: 900px;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2rem;
+    max-width: 1400px;
     margin: 0 auto;
 }
 
 .rec-card {
-    background-color: #1F1138;
-    border: 1px solid #332352;
-    border-radius: 12px;
+    background-color: rgba(11, 2, 29, 0.75);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 16px;
     padding: 2rem;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
-    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .rec-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-    border-color: #9D4EDD;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
 }
 
 .rec-topic {
-    font-size: 1.6rem;
-    font-weight: 600;
+    font-size: 1.5rem;
     color: #FFFFFF;
-    margin: 0 0 1.5rem 0;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid #7B2CBF;
+    padding-bottom: 0.75rem;
 }
 
 .rec-section {
-    margin-bottom: 1.5rem;
-}
-
-.rec-section:last-child {
-    margin-bottom: 0;
+    margin-bottom: 1.2rem;
 }
 
 .rec-section h4 {
-    font-size: 0.9rem;
-    font-weight: 700;
-    color: #9D4EDD;
+    font-size: 1rem;
+    color: #C77DFF;
+    margin-bottom: 0.5rem;
     text-transform: uppercase;
-    letter-spacing: 0.8px;
-    margin: 0 0 0.75rem 0;
+    letter-spacing: 0.5px;
 }
 
 .rec-section p {
-    font-size: 0.95rem;
     color: #A0A0B0;
-    line-height: 1.7;
-    margin: 0;
+    line-height: 1.6;
 }
 
 .rec-skills-container {
@@ -155,47 +174,60 @@
 }
 
 .rec-skill-tag {
-    background-color: #332352;
+    background-color: rgba(255, 255, 255, 0.1);
     color: #E0E0E0;
-    padding: 0.4rem 0.8rem;
-    border-radius: 6px;
-    font-size: 0.9rem;
+    padding: 0.3rem 0.8rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
 }
 
 .interview-section p {
     font-style: italic;
-    color: #CFCFE0;
-    padding-left: 1rem;
-    border-left: 3px solid #9D4EDD;
+    color: #56CFE1;
 }
 
 /* --- Feedback States --- */
 .feedback-container {
-    text-align: center;
-    padding: 4rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 3rem 0;
+    color: #A0A0B0;
 }
 
 .spinner {
-    border: 4px solid #332352;
-    border-top: 4px solid #9D4EDD;
-    border-radius: 50%;
     width: 50px;
     height: 50px;
+    border: 5px solid rgba(255, 255, 255, 0.2);
+    border-top-color: #9D4EDD;
+    border-radius: 50%;
     animation: spin 1s linear infinite;
-    margin: 0 auto 1rem auto;
+    margin-bottom: 1rem;
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    to { transform: rotate(360deg); }
 }
 
 .error-message {
-    background-color: #581a22;
-    color: #ffcdd2;
-    border: 1px solid #e57373;
-    padding: 1rem 1.5rem;
+    background-color: rgba(255, 77, 109, 0.2);
+    color: #ff4d6d;
+    padding: 1rem;
     border-radius: 8px;
-    display: inline-block;
+    margin-bottom: 1.5rem;
+    text-align: center;
 }
 
+/* --- Responsive Design --- */
+@media (max-width: 768px) {
+    .recs-content-wrapper {
+        padding: 2rem;
+    }
+    .recs-title {
+        font-size: 2.5rem;
+    }
+    .recs-actions {
+        flex-direction: column;
+    }
+}
