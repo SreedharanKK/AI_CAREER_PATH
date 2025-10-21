@@ -24,8 +24,6 @@ export default function Dashboard() {
   const { apiFetch, isLoading, error } = useApi();
   useParticleBackground(canvasRef);
 
-
-  // useEffect for fetching dashboard data
   useEffect(() => {
     const fetchAllData = async () => {
       const [userRes, analysisRes, roadmapRes, recsRes, achievementsRes] = await Promise.all([
@@ -232,8 +230,7 @@ export default function Dashboard() {
           </div>
         )}
       </div>
-      </>
-    
+     </>   
   );
 }
 

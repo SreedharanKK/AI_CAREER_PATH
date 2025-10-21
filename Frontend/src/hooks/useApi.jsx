@@ -19,8 +19,6 @@ export function useApi() {
         ...options,
       };
 
-      // ✅ CRITICAL CHANGE: Conditionally set Content-Type
-      // Do not set Content-Type for FormData, let the browser handle it.
       if (!(defaultOptions.body instanceof FormData)) {
         defaultOptions.headers['Content-Type'] = 'application/json';
       }

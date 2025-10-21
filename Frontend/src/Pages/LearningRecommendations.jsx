@@ -9,11 +9,10 @@ export default function LearningRecommendations() {
     const navigate = useNavigate();
     const [userData, setUserData] = useState(null);
     const [recommendations, setRecommendations] = useState([]);
-    const canvasRef = useRef(null); // ADDED: Ref for the canvas element
+    const canvasRef = useRef(null);
     const { apiFetch, isLoading, error } = useApi();
     useParticleBackground(canvasRef);
 
-    // This data-fetching logic is unchanged
     const fetchRecommendations = async () => {
         const data = await apiFetch('/api/user/learning-recommendations');
         if (data) {

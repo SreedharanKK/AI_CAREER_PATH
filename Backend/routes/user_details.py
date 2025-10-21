@@ -46,7 +46,7 @@ def update_user_details():
 
         # --- 2. NEW LOGIC: Handle Date Formatting ---
         dob_from_form = request.form.get("dob")
-        final_dob = None
+        final_dob = dob_from_form if dob_from_form else existing_details.get("dob")
 
         if dob_from_form:
             try:

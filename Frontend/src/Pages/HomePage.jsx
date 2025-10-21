@@ -4,6 +4,7 @@ import AnimatedPage from "../hooks/AnimatedPage";
 import toast from 'react-hot-toast';
 import "../Styles/HomePage.css";
 import useParticleBackground from "../hooks/UseParticleBackground";
+import { useApi } from "../hooks/useApi";
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -11,7 +12,7 @@ export default function HomePage() {
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState(["", "", "", ""]);
   const [loginEmail, setLoginEmail] = useState("");
-
+  const { apiFetch, isLoading, error } = useApi();
   const [signupData, setSignupData] = useState({
     full_name: "",
     email: "",
@@ -46,23 +47,16 @@ export default function HomePage() {
       return;
     }
     const { full_name, email, password } = signupData;
-    try {
-      const res = await fetch("http://localhost:5000/api/auth/signup", {
+    const data = await apiFetch("/api/auth/signup", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ full_name, email, password }),
-      });
-      const data = await res.json();
-      if (res.ok) {
+    });
+
+    if (data) {
         toast.success("Signup Successful!");
         setSignupData({ full_name: "", email: "", password: "", confirm_password: "" });
         setActiveTab("login");
-      } else {
-        toast.error(data.error);
-      }
-    } catch (err) {
-      toast.error("⚠️ Server not responding");
-    }
+    } 
   };
 
   const handleLoginSubmit = async (e) => {
@@ -165,7 +159,8 @@ export default function HomePage() {
               <input type="email" name="email" placeholder="Email" value={signupData.email} onChange={handleSignupChange} required />
               <input type="password" name="password" placeholder="Password" value={signupData.password} onChange={handleSignupChange} required />
               <input type="password" name="confirm_password" placeholder="Re-enter Password" value={signupData.confirm_password} onChange={handleSignupChange} required />
-              <button className="btn-primary" type="submit">Sign Up</button>
+              <button className="btn-primary" type="submit"disabled={isLoading}>
+                {isLoading ? 'Signing up...' : 'Sign Up'}</button>
             </form>
           )}
 

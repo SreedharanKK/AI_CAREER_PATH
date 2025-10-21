@@ -1,4 +1,3 @@
-/* --- Global & Body --- */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -10,18 +9,17 @@ body {
   font-family: 'Inter', sans-serif;
   background-color: #0B021D;
   color: #E0E0E0;
-  overflow-y: auto; /* Allow scrolling for the long form */
+  overflow-y: auto; 
   
 }
 
-/* --- Canvas Styling for the Particle Web --- */
 .live-background-canvas {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 1; /* Sits behind content */
+  z-index: 1; 
   background: linear-gradient(-45deg, #0b021d, #1f0a40, #110624, #0b021d);
   background-size: 400% 400%;
   animation: gradientBG 25s ease infinite;
@@ -33,7 +31,6 @@ body {
   100% { background-position: 0% 50%; }
 }
 
-/* --- Loading State --- */
 .loading {
   position: relative;
   z-index: 2;
@@ -45,13 +42,12 @@ body {
   color: #FFFFFF;
 }
 
-/* --- Main Form Container (Glassmorphism Card) --- */
 .update-details-container {
   position: relative; 
   z-index: 2;
   width: 100%;
-  max-width: 700px; /* Wider for a details form */
-  margin: 4rem auto; /* Center horizontally and add top/bottom margin */
+  max-width: 700px; 
+  margin: 4rem auto; 
   padding: 2.5rem 3rem;
   background-color: rgba(11, 2, 29, 0.75); 
   border: 1px solid rgba(255, 255, 255, 0.15);
@@ -73,7 +69,6 @@ body {
   -webkit-text-fill-color: transparent;
 }
 
-/* --- Form Styling --- */
 .update-form {
   display: flex;
   flex-direction: column;
@@ -116,7 +111,6 @@ body {
   cursor: pointer;
 }
 
-/* Read-only fields styling */
 .update-form input:read-only {
   background-color: rgba(0, 0, 0, 0.2);
   color: #999;
@@ -143,7 +137,6 @@ body {
   background-color: #48BFE3;
 }
 
-/* --- Button Styling --- */
 .save-btn {
   border: none;
   border-radius: 10px;

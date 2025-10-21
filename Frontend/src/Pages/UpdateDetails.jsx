@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react"; // ✅ 1. Added useRef
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import AnimatedPage from "../hooks/AnimatedPage";
 import toast from 'react-hot-toast';
@@ -26,7 +26,6 @@ export default function UpdateDetails() {
   const canvasRef = useRef(null);
   useParticleBackground(canvasRef);
 
-  // useEffect for fetching initial details
   useEffect(() => {
     const fetchDetails = async () => {
       const data = await apiFetch("/api/user/details");
@@ -93,7 +92,6 @@ export default function UpdateDetails() {
     }
   };
 
-  // ✅ 4. Refactored return to include canvas and conditional logic
   return (
     <AnimatedPage>
         <>

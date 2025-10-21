@@ -1,6 +1,4 @@
 import { useEffect } from 'react';
-
-// This hook encapsulates the entire canvas animation logic.
 export default function useParticleBackground(canvasRef) {
   useEffect(() => {
     const canvas = canvasRef.current;

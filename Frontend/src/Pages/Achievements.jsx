@@ -14,7 +14,6 @@ export default function Achievements() {
     const { apiFetch, isLoading, error } = useApi();
     useParticleBackground(canvasRef);
 
-    // useEffect for fetching data
     useEffect(() => {
         const fetchAchievementsData = async () => {
             const data = await apiFetch('/api/user/achievements');

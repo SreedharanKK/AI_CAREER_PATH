@@ -1,18 +1,16 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AnimatedPage from '../hooks/AnimatedPage';
-import '../Styles/Roadmap.css'; // We will need to add new styles
+import '../Styles/Roadmap.css';
 import { useApi } from '../hooks/useApi';
 import useParticleBackground from '../hooks/UseParticleBackground';
 
-// Helper component (Unchanged)
 const ResourceIcon = ({ type }) => {
     const icons = { Course: '🎓', Video: '▶️', Article: '📄', Book: '📚', Project: '💻', Documentation: '📝', "Video Tutorial": '▶️', "Interactive Course": '🎓', "Project Idea": '💡', Default: '⭐' };
     const icon = icons[type] || icons['Default'];
     return <span className="resource-icon" title={type}>{icon}</span>;
 };
 
-// NEW: Helper component for the completion percentage bar
 const CompletionBar = ({ percentage }) => (
     <div className="completion-bar-container">
         <div className="completion-bar-track">
@@ -24,82 +22,71 @@ const CompletionBar = ({ percentage }) => (
 
 export default function Roadmap() {
     const navigate = useNavigate();
-    const [newDomain, setNewDomain] = useState(""); // State for the <select> dropdown
-    const [activeRoadmaps, setActiveRoadmaps] = useState([]); // List of user's roadmaps (e.g., [{id: 1, domain: "FE", ...}, ...])
-    const [selectedRoadmap, setSelectedRoadmap] = useState(null); // The full data of the chosen roadmap
+    const [newDomain, setNewDomain] = useState(""); 
+    const [activeRoadmaps, setActiveRoadmaps] = useState([]); 
+    const [selectedRoadmap, setSelectedRoadmap] = useState(null); 
     
     const canvasRef = useRef(null);
     const { apiFetch, isLoading, error, setError } = useApi();
     useParticleBackground(canvasRef);
     let totalStepsCount = 0;
 
-    // --- NEW: Fetch the list of active roadmaps on load ---
     const fetchActiveRoadmaps = useCallback(async () => {
         const data = await apiFetch('/api/user/get-all-active-roadmaps');
         if (data) {
             setActiveRoadmaps(data);
-            // If no roadmap is currently selected, auto-select the first one from the list
             if (data.length > 0 && !selectedRoadmap) {
                 handleSelectRoadmap(data[0].domain);
             }
         }
-    }, [apiFetch, selectedRoadmap]); // We'll re-run this logic, but need to fetch the selection
+    }, [apiFetch, selectedRoadmap]); 
 
-    // --- MODIFIED: Fetch initial list on mount ---
     useEffect(() => {
         const fetchInitialList = async () => {
             const data = await apiFetch('/api/user/get-all-active-roadmaps');
             if (data) {
                 setActiveRoadmaps(data);
-                // Auto-select the first roadmap in the list
                 if (data.length > 0) {
                     handleSelectRoadmap(data[0].domain);
                 }
             }
         };
         fetchInitialList();
-    }, [apiFetch]); // Run only once on load
-    
-    // --- NEW: Fetch full data for a *specific* roadmap when clicked ---
+    }, [apiFetch]);
+
     const handleSelectRoadmap = useCallback(async (domainToSelect) => {
         if (!domainToSelect) {
             setSelectedRoadmap(null);
             return;
         }
-        // Set loading state for the main content
         setSelectedRoadmap(null); 
         const data = await apiFetch(`/api/user/get-user-roadmap?domain=${domainToSelect}`);
         if (data) {
             setSelectedRoadmap(data.roadmap ? data : null);
         }
-    }, [apiFetch]); // This function is now standalone
+    }, [apiFetch]); 
 
-    // --- MODIFIED: Handle generating a *new* roadmap ---
     const handleGenerateRoadmap = useCallback(async () => {
         if (!newDomain) {
             setError("Please select a domain to generate.");
             return;
         }
-
-        // Check if user already has this roadmap
         const isExisting = activeRoadmaps.some(r => r.domain === newDomain);
-        
-        // Check for 2-roadmap limit ONLY if it's a new roadmap
+
         if (!isExisting && activeRoadmaps.length >= 2) {
             setError("You can only have 2 active roadmaps at a time. Please delete one to add another.");
             return;
         }
         
-        setSelectedRoadmap(null); // Clear selection to show loading
+        setSelectedRoadmap(null); 
         const data = await apiFetch("/api/user/generate-roadmap", {
             method: "POST",
             body: JSON.stringify({ domain: newDomain })
         });
         
         if (data) {
-            setSelectedRoadmap(data); // Show the new roadmap
-            setNewDomain(""); // Clear the dropdown
-            // Refresh the list of active roadmaps to include the new one
+            setSelectedRoadmap(data);
+            setNewDomain(""); 
             fetchActiveRoadmaps(); 
         }
     }, [newDomain, activeRoadmaps, apiFetch, setError, fetchActiveRoadmaps]);
@@ -113,7 +100,6 @@ export default function Roadmap() {
         }
     };
 
-    // MODIFIED: Layout class depends on a roadmap *being selected*
     const layoutClassName = `roadmap-page-container ${selectedRoadmap ? 'layout-shifted' : ''}`;
 
     return (
@@ -124,7 +110,6 @@ export default function Roadmap() {
                 <aside className="roadmap-controls">
                     <h1 className="roadmap-title">AI Digital Roadmap</h1>
                     
-                    {/* --- NEW: Active Roadmaps Box --- */}
                     <div className="active-roadmaps-box">
                         <h2 className="active-roadmaps-title">Your Active Roadmaps</h2>
                         {activeRoadmaps.length > 0 ? (
@@ -133,7 +118,7 @@ export default function Roadmap() {
                                     key={roadmap.id} 
                                     className={`roadmap-card ${selectedRoadmap?.id === roadmap.id ? 'active' : ''}`}
                                     onClick={() => handleSelectRoadmap(roadmap.domain)}
-                                    disabled={isLoading && !selectedRoadmap} // Disable while loading
+                                    disabled={isLoading && !selectedRoadmap}
                                 >
                                     <span className="roadmap-card-domain">{roadmap.domain}</span>
                                     <CompletionBar percentage={roadmap.completion_percentage} />
@@ -144,7 +129,6 @@ export default function Roadmap() {
                         )}
                     </div>
 
-                    {/* --- MODIFIED: "Generate New" Section --- */}
                     <div className="generate-roadmap-box">
                         <h2 className="generate-roadmap-title">Add a New Roadmap</h2>
                         <p className="roadmap-subtitle">Select a career path to generate a new journey (Max 2).</p>
@@ -167,7 +151,6 @@ export default function Roadmap() {
                 <main className="roadmap-main-content">
                     {error && <div className="roadmap-error">{error}</div>}
                     
-                    {/* MODIFIED: Show loading spinner if loading *or* if loading a selected roadmap */}
                     {isLoading && !selectedRoadmap && (
                         <div className="loading-spinner">
                             <div className="spinner"></div>
@@ -175,7 +158,6 @@ export default function Roadmap() {
                         </div>
                     )}
                     
-                    {/* MODIFIED: Show placeholder if not loading and *no roadmap is selected* */}
                     {!isLoading && !selectedRoadmap && !error && (
                         <div className="no-roadmap-placeholder">
                             <p>Your personalized roadmap will appear here.</p>
@@ -183,7 +165,6 @@ export default function Roadmap() {
                         </div>
                     )}
                     
-                    {/* MODIFIED: Render based on selectedRoadmap */}
                     {selectedRoadmap && (
                         <div className="roadmap-timeline-container">
                             <div className="road-line"></div>

@@ -30,21 +30,30 @@ def get_profile_for_jobs():
     try:
         # Fetch combined skills
         manual_skills, extracted_skills = [], []
+        
+        # --- Query 1: Fetch manual skills ---
         cur.execute("SELECT skills FROM user_details WHERE user_id = %s", (user_id,))
-        user_details = cur.fetchone()
-        if user_details and user_details['skills']:
+        # ✅ FIX: Use fetchall() to fully consume the results, then get the first item.
+        user_details_rows = cur.fetchall()
+        user_details = user_details_rows[0] if user_details_rows else None
+
+        if user_details and user_details.get('skills'):
             manual_skills = json.loads(user_details['skills'])
 
+        # --- Query 2: Fetch extracted skills ---
         cur.execute("SELECT skills FROM extract_skills WHERE user_id = %s", (user_id,))
-        extracted_details = cur.fetchone()
-        if extracted_details and extracted_details['skills']:
+        # ✅ FIX: Use fetchall() again for the second query.
+        extracted_details_rows = cur.fetchall()
+        extracted_details = extracted_details_rows[0] if extracted_details_rows else None
+
+        if extracted_details and extracted_details.get('skills'):
             extracted_skills = json.loads(extracted_details['skills'])
         
         combined_skills = manual_skills + extracted_skills
-        unique_skills_dict = {skill.lower(): skill.title() for skill in combined_skills}
+        unique_skills_dict = {skill.lower(): skill.title() for skill in combined_skills if skill}
         final_skills = sorted(list(unique_skills_dict.values()))
         
-        # Fetch completed courses and group them by domain
+        # --- Query 3: Fetch completed courses ---
         cur.execute("""
             SELECT r.domain, JSON_UNQUOTE(JSON_EXTRACT(r.roadmap, CONCAT('$.roadmap[', urp.stage_index, '].steps[', urp.step_index, '].title'))) AS course_title
             FROM user_roadmap_progress urp JOIN roadmaps r ON urp.roadmap_id = r.id
@@ -52,6 +61,7 @@ def get_profile_for_jobs():
         """, (user_id,))
         
         completed_courses_by_domain = {}
+        # This part is already correct as it iterates over fetchall()
         for row in cur.fetchall():
             domain = row['domain']
             if domain not in completed_courses_by_domain:
@@ -88,7 +98,6 @@ def search_jobs():
     if not gemini_model: return jsonify({"error": "AI Model is not available."}), 503
 
     try:
-        # --- FINAL, UPGRADED PROMPT (REMOVED GOOGLE SEARCH TOOL FOR STABILITY) ---
         prompt = f"""
         You are an expert AI Career Coach with access to vast, up-to-date information about the job market in India.
         Today's date is {date.today().strftime('%B %d, %Y')}.
@@ -106,10 +115,7 @@ def search_jobs():
         8.  `source` MUST be the website where you found the job (e.g., "Naukri.com", "LinkedIn", "Instahyre").
         9.  `recommendation_reason` MUST be a personalized, one-sentence explanation of WHY this job is a good match, referencing one of the user's Primary Skills.
         """
-
-        # Call the Gemini API without the unstable 'tools' parameter
         response = gemini_model.generate_content(prompt)
-
         cleaned_response_text = re.sub(r'```(json)?|```', '', response.text).strip()
         job_data = json.loads(cleaned_response_text)
 
@@ -119,6 +125,4 @@ def search_jobs():
         print(f"❌ Error during AI job search: {e}")
         return jsonify({"error": "The AI search failed. This can happen if the AI cannot find very fresh job postings matching your specific skills. Try broadening your skills list or try again later."}), 500
     finally:
-        # No database connection was opened in this function, so no need to close it.
         pass
-
