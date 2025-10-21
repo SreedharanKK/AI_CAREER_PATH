@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'; // ✅ 1. Added useRef
+import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import AnimatedPage from '../hooks/AnimatedPage';
 import '../Styles/QuizPage.css';
@@ -16,7 +16,6 @@ export default function QuizPage() {
     const canvasRef = useRef(null);
     useParticleBackground(canvasRef);
 
-    // useEffect for fetching the quiz
     useEffect(() => {
         if (!step || roadmapId === undefined || stageIndex === undefined || stepIndex === undefined) {
             setError("Quiz details are missing. Please return to the roadmap.");
@@ -39,7 +38,7 @@ export default function QuizPage() {
         };
 
         fetchQuiz();
-    }, [step, roadmapId, stageIndex, stepIndex, setError]); // Added setError to dependency array
+    }, [step, roadmapId, stageIndex, stepIndex, setError]);
 
     const handleAnswerChange = (questionText, answer) => {
         setUserAnswers(prev => ({
@@ -76,7 +75,6 @@ export default function QuizPage() {
     };
 
     return (
-        // ✅ 4. Wrap in fragment and add canvas
         <AnimatedPage>
             <>
             <canvas ref={canvasRef} className="live-background-canvas"></canvas>

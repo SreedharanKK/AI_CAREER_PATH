@@ -5,11 +5,11 @@ import re
 import jwt
 from db_config import get_db_connection
 from config import SECRET_KEY
-from api_config import gemini_model 
+from api_config import gemini_model
 
 skill_gap_bp = Blueprint('skill_gap', __name__)
 
-# --- GET User Skills Route (No changes) ---
+# --- GET User Skills Route (FIXED) ---
 @skill_gap_bp.route('/skill-gap/skills', methods=['GET'])
 def get_user_skills():
     token = request.cookies.get("token")
@@ -28,18 +28,38 @@ def get_user_skills():
     cur = conn.cursor(dictionary=True)
     try:
         manual_skills, extracted_skills = [], []
+        
+        # --- Query 1 for manual skills ---
         cur.execute("SELECT skills FROM user_details WHERE user_id = %s", (user_id,))
-        user_details = cur.fetchone()
-        if user_details and user_details['skills']:
-            manual_skills = json.loads(user_details['skills'])
+        # ✅ FIX: Use fetchall() to fully consume the results, then get the first item.
+        user_details_rows = cur.fetchall()
+        user_details = user_details_rows[0] if user_details_rows else None
+        
+        if user_details and user_details.get('skills'):
+            # The 'skills' column might be a JSON string or already parsed
+            skills_data = user_details['skills']
+            if isinstance(skills_data, str):
+                manual_skills = json.loads(skills_data)
+            elif isinstance(skills_data, list):
+                manual_skills = skills_data
 
+
+        # --- Query 2 for extracted skills ---
         cur.execute("SELECT skills FROM extract_skills WHERE user_id = %s", (user_id,))
-        extracted_details = cur.fetchone()
-        if extracted_details and extracted_details['skills']:
-            extracted_skills = json.loads(extracted_details['skills'])
+        # ✅ FIX: Use fetchall() again for the second query.
+        extracted_details_rows = cur.fetchall()
+        extracted_details = extracted_details_rows[0] if extracted_details_rows else None
 
+        if extracted_details and extracted_details.get('skills'):
+            skills_data = extracted_details['skills']
+            if isinstance(skills_data, str):
+                extracted_skills = json.loads(skills_data)
+            elif isinstance(skills_data, list):
+                extracted_skills = skills_data
+
+        # Combine, deduplicate, and sort skills
         combined_skills = manual_skills + extracted_skills
-        unique_skills_dict = {skill.lower(): skill for skill in reversed(combined_skills)}
+        unique_skills_dict = {skill.lower(): skill for skill in reversed(combined_skills) if skill} # Ensure skill is not empty
         final_skills = sorted([s.title() for s in unique_skills_dict.values()])
         
         return jsonify({"skills": final_skills})
@@ -50,7 +70,7 @@ def get_user_skills():
         cur.close()
         conn.close()
 
-# --- Analyze Skill Gap Route (No changes) ---
+# --- Analyze Skill Gap Route (No changes needed) ---
 @skill_gap_bp.route('/skill-gap/analyze', methods=['POST'])
 def analyze_skill_gap():
     token = request.cookies.get("token")
@@ -111,13 +131,9 @@ def analyze_skill_gap():
         cur.close()
         conn.close()
 
-# --- UPDATED: Endpoint to get the LATEST analysis record ---
+# --- Get Latest Analysis Route (No changes needed) ---
 @skill_gap_bp.route('/skill-gap/latest', methods=['GET'])
 def get_latest_analysis():
-    """
-    Finds and returns the most recent skill gap analysis record,
-    including missing skills AND recommendations.
-    """
     token = request.cookies.get("token")
     if not token: return jsonify({"error": "Authentication required."}), 401
     try:
@@ -131,7 +147,6 @@ def get_latest_analysis():
     
     cur = conn.cursor(dictionary=True)
     try:
-        # The SQL query now includes 'recommended_courses'
         cur.execute(
             """
             SELECT interested_domain, missing_skills, recommended_courses 
@@ -147,14 +162,12 @@ def get_latest_analysis():
         if not latest_record:
             return jsonify({"message": "No analysis found."}), 200
 
-        # Parse both missing_skills and recommendations from their JSON string format
         if latest_record.get('missing_skills'):
             latest_record['missing_skills'] = json.loads(latest_record['missing_skills'])
         else:
             latest_record['missing_skills'] = []
             
         if latest_record.get('recommended_courses'):
-            # The frontend expects the key to be 'recommendations'
             latest_record['recommendations'] = json.loads(latest_record['recommended_courses'])
         else:
             latest_record['recommendations'] = []
@@ -168,7 +181,7 @@ def get_latest_analysis():
         cur.close()
         conn.close()
 
-# --- Endpoint to get the last-used domain for analysis (No changes) ---
+# --- Get Last Domain Route (No changes needed) ---
 @skill_gap_bp.route('/skill-gap/last-domain', methods=['GET'])
 def get_last_analysis_domain():
     token = request.cookies.get("token")
@@ -199,4 +212,3 @@ def get_last_analysis_domain():
     finally:
         cur.close()
         conn.close()
-

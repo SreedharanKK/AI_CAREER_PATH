@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'; // ✅ 1. Added useRef
+import React, { useState, useEffect, useRef } from 'react'; 
 import { useNavigate } from 'react-router-dom';
 import AnimatedPage from '../hooks/AnimatedPage';
 import '../Styles/JobRecommendations.css'; 
@@ -15,7 +15,6 @@ export default function JobRecommendations() {
     const canvasRef = useRef(null);
     useParticleBackground(canvasRef);
 
-    // useEffect for fetching profile data
     useEffect(() => {
         const fetchProfileForJobs = async () => {
             const data = await apiFetch('/api/user/get-profile-for-jobs');
@@ -25,7 +24,7 @@ export default function JobRecommendations() {
             }
         };
         fetchProfileForJobs();
-    }, []); // apiFetch is stable
+    }, []);
 
     const handleSearchJobs = async () => {
         setIsSearching(true);
@@ -48,7 +47,6 @@ export default function JobRecommendations() {
     };
 
     return (
-        // ✅ 4. Wrap in fragment and add canvas
         <AnimatedPage>
             <>
             <canvas ref={canvasRef} className="live-background-canvas"></canvas>

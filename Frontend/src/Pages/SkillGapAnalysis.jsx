@@ -10,7 +10,7 @@ export default function SkillGapAnalysis() {
     const [editedSkills, setEditedSkills] = useState("");
     const [domain, setDomain] = useState("");
     const [analysisResult, setAnalysisResult] = useState(null);
-    const canvasRef = useRef(null); // ADDED: Ref for the canvas element
+    const canvasRef = useRef(null); 
     
     const { apiFetch, isLoading, error, setError } = useApi();
     useParticleBackground(canvasRef);
@@ -29,7 +29,7 @@ export default function SkillGapAnalysis() {
             }
         };
         fetchInitialData();
-    }, [apiFetch]); // Dependency array should include apiFetch
+    }, [apiFetch]);
 
     const fetchLatestAnalysis = useCallback(async (selectedDomain) => {
         if (!selectedDomain) {

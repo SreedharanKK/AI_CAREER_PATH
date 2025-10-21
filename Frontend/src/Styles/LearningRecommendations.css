@@ -1,8 +1,7 @@
-/* --- Global & Animation --- */
 body {
     font-family: 'Inter', sans-serif;
     color: #E0E0E0;
-    overflow-y: auto; /* Allow scrolling */
+    overflow-y: auto; 
 }
 
 .live-background-canvas {
@@ -23,15 +22,14 @@ body {
     100% { background-position: 0% 50%; }
 }
 
-/* --- Page & Content Wrapper --- */
 .recs-page-container {
-    position: relative; /* Needed for z-index context */
+    position: relative;
     min-height: 100vh;
 }
 
 .recs-content-wrapper {
     position: relative;
-    z-index: 2; /* Ensures content is above the canvas */
+    z-index: 2; 
     padding: 3rem 4rem;
     animation: fadeIn 0.8s ease-in-out;
 }
@@ -41,7 +39,6 @@ body {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* --- Header --- */
 .recs-header {
     text-align: center;
     margin-bottom: 2rem;
@@ -75,7 +72,6 @@ body {
     color: #E0E0E0;
 }
 
-/* --- Actions & Buttons --- */
 .recs-actions {
     display: flex;
     justify-content: center;
@@ -118,7 +114,6 @@ body {
     background-color: rgba(255, 255, 255, 0.2);
 }
 
-/* --- Recommendations Grid --- */
 .recommendations-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
@@ -186,7 +181,6 @@ body {
     color: #56CFE1;
 }
 
-/* --- Feedback States --- */
 .feedback-container {
     display: flex;
     flex-direction: column;
@@ -219,7 +213,6 @@ body {
     text-align: center;
 }
 
-/* --- Responsive Design --- */
 @media (max-width: 768px) {
     .recs-content-wrapper {
         padding: 2rem;

@@ -1,4 +1,3 @@
-/* --- Wrapper & Canvas Fix --- */
 #root > div {
   background: transparent !important;
 }
@@ -7,18 +6,18 @@
   position: relative;
   width: 100vw;
   height: 100vh;
-  overflow: hidden; /* Crucial: Contains the absolutely positioned canvas */
+  overflow: hidden; 
   background: transparent;
   scrollbar-color: #9D4EDD #251245;
 }
 
 .live-background-canvas {
-  position: absolute; /* Changed from fixed to absolute */
+  position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 1; /* Sits behind the dashboard content */
+  z-index: 1; 
   background: linear-gradient(-45deg, #0b021d, #1f0a40, #110624, #0b021d);
   background-size: 400% 400%;
   animation: gradientBG 25s ease infinite;
@@ -30,17 +29,15 @@
   100% { background-position: 0% 50%; }
 }
 
-/* --- Main Dashboard Layout --- */
 .dashboard-layout {
   display: flex;
   height: 100vh;
   width: 100vw;
-  position: relative; /* Must be positioned to establish a stacking context */
-  z-index: 2; /* Ensures content is on top of the canvas */
+  position: relative; 
+  z-index: 2;
   background-color: transparent;
 }
 
-/* --- Sidebar --- */
 .dashboard-sidebar {
   width: 250px;
   padding: 2rem 1.5rem;
@@ -91,7 +88,6 @@
 .logout-btn { margin-top: auto; }
 .logout-btn:hover { background-color: #c9184a; border-color: #ff4d6d; }
 
-/* --- Main Content Area --- */
 .dashboard-main-content {
   flex-grow: 1;
   padding: 3rem;
@@ -99,7 +95,6 @@
   height: 100vh;
 }
 
-/* --- Card Grid --- */
 .card-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -127,14 +122,11 @@
 .card-icon { font-size: 1.5rem; color: #9d4edd; }
 .card-description { color: #a0a0b0; line-height: 1.6; margin-bottom: 1.5rem; }
 .full-width { grid-column: 1 / -1; }
-
-/* --- Analysis Preview Snippets --- */
 .analysis-preview { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.1); }
 .analysis-preview h4 { font-size: 1rem; color: #c77dff; margin-bottom: 0.75rem; }
 .analysis-preview p { color: #d0d0d0; margin-bottom: 0.5rem; font-size: 0.9rem; }
 .analysis-preview-none { color: #888; font-style: italic; margin-top: 1.5rem; }
 
-/* --- Profile Details View --- */
 .profile-details {
   padding: 2.5rem;
   background-color: rgba(23, 11, 49, 0.75);
@@ -180,7 +172,6 @@
   box-shadow: 0 4px 15px rgba(157, 78, 221, 0.4);
 }
 
-/* --- Modal Styles --- */
 .modal-overlay {
   position: fixed;
   top: 0;
