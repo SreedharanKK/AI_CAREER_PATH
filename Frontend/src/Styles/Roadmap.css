@@ -111,6 +111,8 @@
     color: #E0E0E0;
     border: 1px solid #332352;
     margin-bottom: 1.5rem;
+    border-radius: 12px;
+    
 }
 
 .generate-btn-roadmap {

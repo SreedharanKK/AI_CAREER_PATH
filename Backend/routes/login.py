@@ -7,31 +7,7 @@ from utils.skill_extractor import trigger_skill_extraction
 
 
 login_bp = Blueprint("login", __name__)
-
-# 1. Create a helper function for the thread
-def send_otp_email(email, otp):
-    """Runs the Node.js mailer in a non-blocking background process."""
-    print(f"--- Starting mailer thread for {email} ---")
-    try:
-        # Use Popen without .communicate() to just start the process
-        # Pass data via stdin
-        process = subprocess.Popen(
-            ["node", "mailer.js"],
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE, # Capture output to prevent console spam
-            stderr=subprocess.PIPE,
-            text=True,
-        )
-        # Send data to the process
-        stdout, stderr = process.communicate(json.dumps({"email": email, "otp": otp}))
-        if process.returncode == 0:
-            print(f"✅ Mailer thread success for {email}: {stdout}")
-        else:
-            print(f"❌ Mailer thread error for {email}: {stderr}")
-            
-    except Exception as e:
-        print(f"❌ Mailer thread subprocess exception: {e}")
-
+    
 # Step 1: Login and send OTP
 @login_bp.route("/login", methods=["POST"])
 def login():
@@ -40,14 +16,11 @@ def login():
     password = data.get("password")
 
     conn = get_db_connection()
-    if not conn:
-        return jsonify({"error": "Database connection failed"}), 500
     cursor = conn.cursor(dictionary=True)
 
     try:
         cursor.execute("SELECT * FROM users_auth WHERE email = %s", (email,))
-        user_rows = cursor.fetchall()
-        user = user_rows[0] if user_rows else None
+        user = cursor.fetchone()
 
         if not user or not check_password_hash(user["password"], password):
             return jsonify({"error": "Invalid email or password"}), 401
@@ -63,11 +36,14 @@ def login():
         conn.commit()
 
         # ✅ Call Node.js mailer script using JSON stdin
-        mail_thread = threading.Thread(
-            target=send_otp_email,
-            args=(email, otp)
-        )
-        mail_thread.start()
+        try:
+            subprocess.Popen(
+                ["node", "mailer.js"],
+                stdin=subprocess.PIPE,
+                text=True,
+            ).communicate(json.dumps({"email":email, "otp":otp}))
+        except Exception as e:
+            print("❌ Error calling mailer:", e)
 
         return jsonify({"message": "OTP sent to your email"}), 200
 
@@ -88,14 +64,11 @@ def verify_otp():
     otp_entered = data.get("otp", "").strip()  # ✅ trim whitespace
 
     conn = get_db_connection()
-    if not conn:
-        return jsonify({"error": "Database connection failed"}), 500
     cursor = conn.cursor(dictionary=True)
 
     try:
         cursor.execute("SELECT id, full_name, otp, otp_expiry FROM users_auth WHERE email = %s", (email,))
-        record_rows = cursor.fetchall()
-        record = record_rows[0] if record_rows else None
+        record = cursor.fetchone()
 
         if not record or (record["otp"] or "").strip() != otp_entered:  # ✅ safe strip
             return jsonify({"error": "Wrong OTP"}), 400

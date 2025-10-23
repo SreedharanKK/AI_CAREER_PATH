@@ -26,7 +26,7 @@ process.stdin.on("end", async () => {
       from: '"AI Career Predictor" <yourgmail@gmail.com>',
       to: email,
       subject: "Your OTP Code",
-      text: `Your OTP code is ${otp}`,
+      text: `Your OTP code is ${otp} ,valid for 5 minutes`,
     });
 
     console.log("✅ OTP sent:", info.messageId);
