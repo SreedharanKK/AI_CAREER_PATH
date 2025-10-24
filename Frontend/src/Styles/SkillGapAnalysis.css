@@ -92,7 +92,8 @@ body {
 
 .skills-textarea:focus, .domain-select:focus {
     outline: none;
-    border-color: #9D4EDD;
+    background-color: #0B021D;
+    
     box-shadow: 0 0 15px rgba(157, 78, 221, 0.6);
 }
 
