@@ -10,7 +10,7 @@ import traceback # Import traceback for detailed error logging
 
 skill_gap_bp = Blueprint('skill_gap', __name__)
 
-# --- GET User Skills Route (No changes needed from previous version) ---
+# --- GET User Skills Route ---
 @skill_gap_bp.route('/skill-gap/skills', methods=['GET'])
 def get_user_skills():
     token = request.cookies.get("token")
@@ -32,27 +32,30 @@ def get_user_skills():
             print("Error: Database connection failed in get_user_skills")
             return jsonify({"error": "Database connection failed"}), 500
 
-        cur = conn.cursor(dictionary=True)
+        cur = conn.cursor(dictionary=True) # Use dictionary cursor throughout
         manual_skills, extracted_skills = [], []
 
         # --- Query 1 for manual skills ---
         cur.execute("SELECT skills FROM user_details WHERE user_id = %s", (user_id,))
-        user_details_rows = cur.fetchall()
+        user_details_rows = cur.fetchall() # Fetch all results
         user_details = user_details_rows[0] if user_details_rows else None
 
-        if user_details and user_details.get('skills') is not None:
+        if user_details and user_details.get('skills') is not None: # Check explicitly for None
             skills_data = user_details['skills']
             if isinstance(skills_data, (bytes, bytearray)):
-                skills_data = skills_data.decode('utf-8')
+                skills_data = skills_data.decode('utf-8') # Decode if bytes
             if isinstance(skills_data, str):
                 try:
-                    manual_skills = json.loads(skills_data)
-                    if not isinstance(manual_skills, list):
-                         print(f"Warning: Manual skills JSON for user {user_id} decoded to non-list type: {type(manual_skills)}")
-                         manual_skills = []
+                    loaded_skills = json.loads(skills_data)
+                    # Ensure it's a list after loading
+                    if isinstance(loaded_skills, list):
+                         manual_skills = loaded_skills
+                    else:
+                         print(f"Warning: Manual skills JSON for user {user_id} decoded to non-list type: {type(loaded_skills)}")
+                         manual_skills = [] # Default to empty list if not a list
                 except json.JSONDecodeError:
                     print(f"Warning: Could not decode manual skills JSON for user {user_id}. Data: '{skills_data}'")
-                    manual_skills = []
+                    manual_skills = [] # Default to empty list on decode error
             elif isinstance(skills_data, list):
                 manual_skills = skills_data
             else:
@@ -62,7 +65,7 @@ def get_user_skills():
 
         # --- Query 2 for extracted skills ---
         cur.execute("SELECT skills FROM extract_skills WHERE user_id = %s", (user_id,))
-        extracted_details_rows = cur.fetchall()
+        extracted_details_rows = cur.fetchall() # Fetch all results
         extracted_details = extracted_details_rows[0] if extracted_details_rows else None
 
         if extracted_details and extracted_details.get('skills') is not None:
@@ -71,9 +74,11 @@ def get_user_skills():
                  skills_data = skills_data.decode('utf-8')
             if isinstance(skills_data, str):
                 try:
-                    extracted_skills = json.loads(skills_data)
-                    if not isinstance(extracted_skills, list):
-                         print(f"Warning: Extracted skills JSON for user {user_id} decoded to non-list type: {type(extracted_skills)}")
+                    loaded_skills = json.loads(skills_data)
+                    if isinstance(loaded_skills, list):
+                         extracted_skills = loaded_skills
+                    else:
+                         print(f"Warning: Extracted skills JSON for user {user_id} decoded to non-list type: {type(loaded_skills)}")
                          extracted_skills = []
                 except json.JSONDecodeError:
                     print(f"Warning: Could not decode extracted skills JSON for user {user_id}. Data: '{skills_data}'")
@@ -84,26 +89,32 @@ def get_user_skills():
                  print(f"Warning: Extracted skills data for user {user_id} is unexpected type: {type(skills_data)}")
                  extracted_skills = []
 
+        # Combine, ensure strings, deduplicate (case-insensitive), title case, and sort
         combined_skills_raw = manual_skills + extracted_skills
-        combined_skills_str = [str(skill).strip() for skill in combined_skills_raw if skill is not None and str(skill).strip()]
+        # Filter out None or empty strings robustly AFTER converting to string
+        combined_skills_str = [str(skill).strip() for skill in combined_skills_raw if skill is not None]
+        # Filter again for non-empty strings after stripping
+        combined_skills_clean = [skill for skill in combined_skills_str if skill]
 
-        unique_skills_dict = {skill.lower(): skill for skill in reversed(combined_skills_str)}
-        final_skills = sorted([s.title() for s in unique_skills_dict.values()])
+        unique_skills_dict = {skill.lower(): skill for skill in reversed(combined_skills_clean)} # Keep last occurrence casing
+        final_skills = sorted([s.title() for s in unique_skills_dict.values()]) # Title case after deduplication
 
+        print(f"Returning skills for user {user_id}: {final_skills}") # Log returned skills
         return jsonify({"skills": final_skills})
 
     except Exception as e:
         print(f"❌ Error fetching combined skills for user {user_id}: {e}")
-        traceback.print_exc()
+        traceback.print_exc() # Print detailed traceback
         return jsonify({"error": "An error occurred while fetching skills"}), 500
     finally:
+        # Close cursor and connection if they were successfully opened
         if cur: cur.close()
         if conn: conn.close()
 
-
-# --- Analyze Skill Gap Route (UPDATED PROMPT) ---
+# --- Analyze Skill Gap Route (Keep as is) ---
 @skill_gap_bp.route('/skill-gap/analyze', methods=['POST'])
 def analyze_skill_gap():
+    # ... (code remains the same as previous correct version) ...
     token = request.cookies.get("token")
     user_id = None
     if not token: return jsonify({"error": "Authentication required. Not logged in."}), 401
@@ -150,45 +161,41 @@ def analyze_skill_gap():
         completed_roadmap_topics = [str(row['completed_title']) for row in completed_steps_rows if row.get('completed_title')]
         print(f"Found completed topics for domain '{domain}' (User {user_id}): {completed_roadmap_topics}")
 
-        # --- Step 2: Prepare and send prompt to AI ---
+        # Step 2: Prepare and send prompt to AI
         current_skills_str = ', '.join(map(str, current_skills)) if current_skills else "None listed"
         completed_topics_str = ', '.join(completed_roadmap_topics) if completed_roadmap_topics else "None yet"
 
-        # --- UPDATED PROMPT ---
         prompt = f"""
-        You are an expert career counselor and technical instructor analyzing a user's profile for the '{domain}' career path in India's current tech market.
+        You are an expert career counselor analyzing a user's skills for the '{domain}' career path in India's current tech market.
 
         User's Profile:
         - Stated Skills (from profile/resume): {current_skills_str}
         - Completed Learning Topics (from roadmap): {completed_topics_str}
 
         Your Task:
-        1. Identify a comprehensive list of skills (technical, tools, methodologies) typically required or highly beneficial for an entry-level '{domain}' role today.
-        2. Compare these required skills against BOTH the user's stated skills AND their completed learning topics.
-        3. Determine which relevant skills the user seems to be 'missing'. Aim for a reasonably detailed list (e.g., 5-10 skills if applicable).
-        4. Determine which relevant skills the user has likely 'acquired' (present in either stated skills or completed topics).
-        5. Provide several detailed and actionable 'recommendations' (e.g., 3-5 suggestions) for learning the most important missing skills. Recommendations could include specific types of resources (e.g., "official documentation for X", "interactive tutorials on platform Y", "build a small project focusing on Z"), key concepts to grasp, or specific tools to practice.
+        1. Identify a comprehensive list of essential skills for an entry-level '{domain}' role.
+        2. Compare these essential skills against the user's 'Stated Skills' AND 'Completed Learning Topics'. Determine which essential skills the user is still 'missing'. Aim for a reasonably detailed list (e.g., 5-10 skills if applicable).
+        3. Determine which essential skills the user has likely 'acquired' based *ONLY* on the list of 'Completed Learning Topics'. List the relevant skills implied by these completed topics.
+        4. Provide several detailed and actionable 'recommendations' (e.g., 3-5 suggestions) for learning the most important missing skills.
 
         Response Format:
         Your response MUST be a valid JSON object with exactly three keys: "missing_skills", "acquired_skills", and "recommendations".
-        - "missing_skills": A list of strings (skill names the user still needs). Aim for 5-10 relevant skills if appropriate for the gap.
-        - "acquired_skills": A list of strings (skill names the user likely possesses relevant to the domain).
+        - "missing_skills": A list of strings (essential skill names the user still needs, considering BOTH inputs).
+        - "acquired_skills": A list of strings (essential skill names the user likely possesses *based ONLY on the Completed Learning Topics*).
         - "recommendations": A list of strings (3-5 detailed, actionable learning suggestions for the missing skills).
 
-        Example:
+        Example (If Completed Topics were 'HTML Basics', 'CSS Fundamentals', 'Intro to JavaScript'):
         {{
-          "missing_skills": ["Kubernetes", "Terraform", "CI/CD Pipelines (e.g., Jenkins, GitHub Actions)", "Monitoring Tools (e.g., Prometheus, Grafana)", "Cloud Networking Basics", "Shell Scripting"],
-          "acquired_skills": ["Python", "Docker", "Git", "Basic Linux Commands", "AWS Fundamentals"],
+          "missing_skills": ["React", "Node.js", "REST APIs", "Git", "Databases (e.g., SQL or NoSQL)"],
+          "acquired_skills": ["HTML", "CSS", "JavaScript Fundamentals"],
           "recommendations": [
-            "Begin with Kubernetes basics through interactive labs on platforms like Katacoda or KodeKloud.",
-            "Follow the official Terraform 'Get Started' guide on their website to understand Infrastructure as Code.",
-            "Set up a simple CI/CD pipeline for a personal project using GitHub Actions to automate build and test.",
-            "Learn basic shell scripting (Bash) for automation tasks using online tutorials.",
-            "Explore cloud provider documentation (e.g., AWS VPC basics) to understand fundamental networking concepts."
+            "Start learning React with the official tutorial or a comprehensive course on Udemy/Coursera.",
+            "Set up a basic Node.js server with Express to understand backend concepts.",
+            "Learn about RESTful APIs and how frontend and backend communicate.",
+            "Practice Git version control for all your projects using GitHub."
           ]
         }}
         """
-        # --- END UPDATED PROMPT ---
 
         response = gemini_model.generate_content(prompt)
         cleaned_response_text = re.sub(r'^```(json)?\s*|\s*```$', '', response.text, flags=re.MULTILINE | re.DOTALL).strip()
@@ -253,9 +260,10 @@ def analyze_skill_gap():
         if cur: cur.close()
         if conn: conn.close()
 
-# --- Get Latest Analysis Route (No changes needed from previous version) ---
+# --- Get Latest Analysis Route (No changes needed) ---
 @skill_gap_bp.route('/skill-gap/latest', methods=['GET'])
 def get_latest_analysis():
+    # ... (code remains the same as previous correct version) ...
     token = request.cookies.get("token")
     user_id = None
     if not token: return jsonify({"error": "Authentication required."}), 401
@@ -326,7 +334,7 @@ def get_latest_analysis():
         analysis_data = {
              "interested_domain": latest_record.get('interested_domain', domain_filter or 'Unknown'),
              "missing_skills": missing_skills,
-             "acquired_skills": acquired_skills,
+             "acquired_skills": acquired_skills, # Add acquired skills to response
              "recommendations": recommendations,
              "created_at": latest_record['created_at'].isoformat() if latest_record.get('created_at') else None
         }
@@ -342,9 +350,10 @@ def get_latest_analysis():
         if conn: conn.close()
 
 
-# --- Get Last Domain Route (No changes needed from previous version) ---
+# --- Get Last Domain Route (No changes needed) ---
 @skill_gap_bp.route('/skill-gap/last-domain', methods=['GET'])
 def get_last_analysis_domain():
+    # ... (code remains the same as previous correct version) ...
     token = request.cookies.get("token")
     user_id = None
     if not token: return jsonify({"error": "Authentication required"}), 401

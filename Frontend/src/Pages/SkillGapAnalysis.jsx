@@ -1,28 +1,38 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from 'react-router-dom';
-// Correct import paths
 import AnimatedPage from '../hooks/AnimatedPage';
 import '../Styles/SkillGapAnalysis.css';
 import { useApi } from '../hooks/useApi';
-import useParticleBackground from '../hooks/UseParticleBackground'; // Correct capitalization
-import toast from 'react-hot-toast'; // Import toast for feedback
+import useParticleBackground from '../hooks/UseParticleBackground';
+import toast from 'react-hot-toast';
+import FeedbackStars from '../components/FeedbackStars'; // Import FeedbackStars
 
 export default function SkillGapAnalysis() {
     const navigate = useNavigate();
     const [editedSkills, setEditedSkills] = useState("");
     const [domain, setDomain] = useState("");
-    const [analysisResult, setAnalysisResult] = useState(null);
+    const [analysisResult, setAnalysisResult] = useState(null); // Holds the analysis data {missing_skills, acquired_skills, recommendations, id?, created_at?}
     const canvasRef = useRef(null);
 
-    // Renamed isLoading to isApiLoading for clarity
     const { apiFetch, isLoading: isApiLoading, error, setError } = useApi();
     useParticleBackground(canvasRef);
+
+    // --- Feedback State ---
+    const [feedbackRating, setFeedbackRating] = useState(0);
+    const [feedbackComment, setFeedbackComment] = useState("");
+    const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
+    const [feedbackSubmittedForId, setFeedbackSubmittedForId] = useState(null); // Use analysis ID if available
 
     // --- Fetch initial skills and last domain ---
     useEffect(() => {
         const fetchInitialData = async () => {
-            setError(null); // Clear errors on initial load
-            setAnalysisResult(null); // Clear previous results
+            setError(null);
+            setAnalysisResult(null);
+            // Reset feedback when component loads initially
+            setFeedbackRating(0);
+            setFeedbackComment("");
+            setFeedbackSubmittedForId(null);
+
             const [skillsData, domainData] = await Promise.all([
                 apiFetch(`/api/user/skill-gap/skills`),
                 apiFetch(`/api/user/skill-gap/last-domain`)
@@ -32,54 +42,62 @@ export default function SkillGapAnalysis() {
             }
             if (domainData?.last_domain) {
                 setDomain(domainData.last_domain);
-                // Trigger fetchLatestAnalysis only if a last_domain was found
-                // fetchLatestAnalysis(domainData.last_domain); // Moved to separate effect
+                // fetchLatestAnalysis will be triggered by the domain state change effect
             }
-             // Handle case where initial fetches fail (error handled by useApi)
         };
         fetchInitialData();
-    }, [apiFetch, setError]); // Removed fetchLatestAnalysis dependency here
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [apiFetch, setError]); // Run only on mount
 
     // --- Fetch latest analysis *when domain changes* ---
      const fetchLatestAnalysis = useCallback(async (selectedDomain) => {
          if (!selectedDomain) {
-             setAnalysisResult(null); // Clear results if no domain selected
+             setAnalysisResult(null);
+             setFeedbackRating(0); // Reset feedback if domain cleared
+             setFeedbackComment("");
+             setFeedbackSubmittedForId(null);
              return;
          }
          console.log(`Fetching latest analysis for domain: ${selectedDomain}`);
-         setError(null); // Clear previous errors before fetching latest
-         setAnalysisResult(null); // Clear previous results immediately
-         const data = await apiFetch(`/api/user/skill-gap/latest?domain=${encodeURIComponent(selectedDomain)}`); // URL encode domain
-         if (data?.analysis) {
-              console.log("Latest analysis data:", data.analysis);
-              setAnalysisResult(data.analysis); // Set the fetched analysis
-         } else if (!error && data?.message) {
-              // Handle "No analysis found" message gracefully - keep result null
-              console.log(data.message);
-              setAnalysisResult(null);
-         }
-         // If error occurred during fetch, error state is already set by useApi
-     }, [apiFetch, setError, error]); // Added error to deps, removed setAnalysisResult
+         setError(null);
+         setAnalysisResult(null); // Clear previous results
+         // Reset feedback state when fetching latest for a domain
+         setFeedbackRating(0);
+         setFeedbackComment("");
+         setFeedbackSubmittedForId(null);
 
-     // This effect runs whenever 'domain' changes OR fetchLatestAnalysis function reference changes
-     useEffect(() => {
-         if (domain) {
-             fetchLatestAnalysis(domain);
-         } else {
-             setAnalysisResult(null); // Clear results if domain is cleared
+         const data = await apiFetch(`/api/user/skill-gap/latest?domain=${encodeURIComponent(selectedDomain)}`);
+         if (data?.analysis) {
+             console.log("Latest analysis data:", data.analysis);
+             // Store analysis ID if available (assuming backend sends it)
+             setAnalysisResult({ ...data.analysis, id: data.analysis.id || Date.now() }); // Use timestamp as fallback ID if needed
+         } else if (!error && data?.message) {
+             console.log(data.message); // "No analysis found"
+             setAnalysisResult(null);
          }
+         // Error handled by useApi
+     // eslint-disable-next-line react-hooks/exhaustive-deps
+     }, [apiFetch, setError]); // Removed error, setAnalysisResult
+
+     // This effect runs whenever 'domain' changes
+     useEffect(() => {
+         fetchLatestAnalysis(domain);
      }, [domain, fetchLatestAnalysis]);
 
 
     // --- Handle clicking the Analyze button ---
     const handleAnalyze = async () => {
         if (!domain) {
-             // Use toast for user feedback instead of setError directly for non-API errors
             toast.error("Please select a domain to analyze.");
             return;
         }
-        setError(null); // Clear previous API errors
-        setAnalysisResult(null); // Clear previous results to show loading
+        setError(null);
+        setAnalysisResult(null); // Clear previous results
+        // Reset feedback state when triggering new analysis
+        setFeedbackRating(0);
+        setFeedbackComment("");
+        setFeedbackSubmittedForId(null);
+
         const skillsArray = editedSkills.split(",").map(s => s.trim()).filter(s => s);
 
         console.log("Sending for analysis:", { skills: skillsArray, domain });
@@ -92,14 +110,51 @@ export default function SkillGapAnalysis() {
         if (data) {
             // Check if expected fields exist before setting
             if (data.missing_skills && data.acquired_skills && data.recommendations) {
-                 setAnalysisResult(data); // Set the new analysis result from the POST request
+                 // Store analysis ID if backend sends it, otherwise use a fallback like timestamp
+                 // Assuming the backend might return the ID of the newly created/updated record
+                 setAnalysisResult({ ...data, id: data.id || Date.now() });
             } else if (!error) {
                  console.error("Analysis API response missing expected fields", data);
-                 setError("Received incomplete analysis results from the AI. Please try again.");
+                 setError("Received incomplete analysis results from the AI.");
+                 setAnalysisResult(null); // Ensure result is null on incomplete data
             }
         }
-        // Error is handled by useApi hook and displayed via useEffect
+        // Error handled by useApi
     };
+
+    // --- Handle Feedback Submission ---
+    const handleFeedbackSubmit = async () => {
+        // Use analysisResult.id (or fallback) as itemId
+        const currentAnalysisId = analysisResult?.id;
+
+        if (!currentAnalysisId || feedbackRating === 0) {
+            toast.error("Please select a rating (1-5 stars).");
+            return;
+        }
+        setIsSubmittingFeedback(true);
+        setError(null);
+
+        const payload = {
+            type: 'skill_analysis', // Set type specific to skill gap
+            itemId: currentAnalysisId.toString(), // Ensure itemId is a string
+            rating: feedbackRating,
+            comment: feedbackComment.trim() || null,
+        };
+
+        const result = await apiFetch("/api/feedback/submit", {
+            method: "POST",
+            body: JSON.stringify(payload),
+        });
+
+        setIsSubmittingFeedback(false);
+        if (result?.success) {
+            toast.success("Thank you for your feedback!");
+            setFeedbackSubmittedForId(currentAnalysisId); // Mark as submitted
+        } else {
+            toast.error(error || "Could not submit feedback.");
+        }
+    };
+
 
      // Display API errors via toast
      useEffect(() => {
@@ -117,63 +172,59 @@ export default function SkillGapAnalysis() {
             <div className="skill-gap-container">
                 <div className="skill-gap-header">
                     <h2>Skill Gap Analysis</h2>
-                    <p>Compare your skills and completed roadmap topics against your desired career path.</p>
+                    <p>Compare your skills against your desired career path.</p>
                 </div>
 
-                {/* Error display is handled by toast now */}
-                {/* {error && <div className="error-message">{error}</div>} */}
-
+                {/* Skills Textarea */}
                 <label htmlFor="skills-textarea-id">Your Combined Skills (Profile, Resume):</label>
                 <textarea
-                    id="skills-textarea-id" // Added id for label association
+                    id="skills-textarea-id"
                     value={editedSkills}
                     onChange={(e) => setEditedSkills(e.target.value)}
                     className="skills-textarea"
                     placeholder={isApiLoading && !editedSkills ? "Loading your skills..." : "Enter/edit skills separated by commas"}
-                    disabled={isApiLoading && !editedSkills} // Disable only during initial load
+                    disabled={isApiLoading && !editedSkills}
                 />
 
+                {/* Domain Select */}
                 <label htmlFor="domain-select-id">Select Your Interested Domain:</label>
                 <select
-                     id="domain-select-id" // Added id
-                     value={domain}
-                     // Update domain state and trigger fetchLatestAnalysis
-                     onChange={(e) => setDomain(e.target.value)}
-                     className="domain-select"
-                     disabled={isApiLoading} // Disable while any API call is loading
-                 >
+                    id="domain-select-id"
+                    value={domain}
+                    onChange={(e) => setDomain(e.target.value)}
+                    className="domain-select"
+                    disabled={isApiLoading}
+                   >
                     <option value="">-- Select Your Career Path --</option>
                     <optgroup label="Web & App Development"> <option value="Frontend Developer">Frontend Developer</option> <option value="Backend Developer">Backend Developer</option> <option value="Full Stack Developer">Full Stack Developer</option> <option value="Android Developer">Android Developer</option> <option value="iOS Developer">iOS Developer</option> </optgroup>
                     <optgroup label="AI, Data Science & ML"> <option value="AI / Machine Learning Engineer">AI / ML Engineer</option> <option value="Data Scientist">Data Scientist</option> <option value="Data Analyst">Data Analyst</option> <option value="Data Engineer">Data Engineer</option> </optgroup>
                     <optgroup label="Cloud & DevOps"> <option value="DevOps Engineer">DevOps Engineer</option> <option value="Cloud Platform Engineer (AWS, Azure, or GCP)">Cloud Platform Engineer</option> </optgroup>
-                    <optgroup label="Cyber Security"> <option value="Cyber Security Analyst">Cyber Security Analyst</option> <option value="Penetration Tester (Ethical Hacking)">Penetration Tester</option> <option value="Security Engineer">Security Engineer</option> </optgroup> {/* Added missing role */}
+                    <optgroup label="Cyber Security"> <option value="Cyber Security Analyst">Cyber Security Analyst</option> <option value="Penetration Tester (Ethical Hacking)">Penetration Tester</option> <option value="Security Engineer">Security Engineer</option> </optgroup>
                     <optgroup label="Specialized Engineering"> <option value="Blockchain Developer">Blockchain Developer</option> <option value="Game Developer">Game Developer</option> <option value="Software Quality Assurance (QA) Engineer">QA Engineer</option> </optgroup>
                 </select>
 
+                {/* Action Buttons */}
                 <div className="actions-footer">
                     <button className="return-btn" onClick={() => navigate('/dashboard')} disabled={isApiLoading}>Return to Dashboard</button>
                     <button
                         className="analyze-btn"
                         onClick={handleAnalyze}
-                        // Disable if loading OR if no domain is selected
                         disabled={isApiLoading || !domain}
                         title={!domain ? "Please select a domain first" : "Run AI analysis"}
                     >
-                        {/* Show specific loading text */}
                         {isApiLoading && !analysisResult ? 'Analyzing...' : 'Analyze with AI'}
                     </button>
                 </div>
 
-                {/* Loading indicator ONLY during analysis POST request */}
-                {isApiLoading && !analysisResult && !error && (
+                {/* Loading Indicator */}
+                {isApiLoading && !analysisResult && !error && ( // Show only during active analysis/fetch
                     <div className="loading-spinner">
                         <div className="spinner"></div>
                         <p>AI is analyzing your profile...</p> {}
                     </div>
                 )}
 
-                {/* --- UPDATED: Analysis Results Display --- */}
-                {/* Show results only if NOT loading AND analysisResult is available */}
+                {/* --- Analysis Results Display --- */}
                 {!isApiLoading && analysisResult && (
                     <div className="analysis-result">
                         <h3>Analysis Results for {analysisResult.interested_domain || domain}</h3>
@@ -181,17 +232,16 @@ export default function SkillGapAnalysis() {
                         {/* Acquired Skills Section */}
                         <div className="result-section">
                              <h4><span className="result-icon">✅</span>Acquired Skills (Relevant to Domain):</h4>
-                             <div className="acquired-skills-container"> {/* Use a different class for potential styling */}
+                             <div className="acquired-skills-container">
                                  {analysisResult.acquired_skills?.length > 0 ? (
                                      analysisResult.acquired_skills.map((skill, i) => (
                                          <span key={`acq-${i}`} className="skill-tag acquired">{skill}</span>
                                      ))
                                  ) : (
-                                     <p className="no-skills-message">No specific relevant skills identified yet based on your profile and completed topics.</p>
+                                     <p className="no-skills-message">No relevant acquired skills identified from completed topics.</p>
                                  )}
                              </div>
                          </div>
-
 
                         {/* Missing Skills Section */}
                         <div className="result-section">
@@ -199,10 +249,10 @@ export default function SkillGapAnalysis() {
                             <div className="missing-skills-container">
                                 {analysisResult.missing_skills?.length > 0 ? (
                                     analysisResult.missing_skills.map((skill, i) => (
-                                        <span key={`miss-${i}`} className="skill-tag missing">{skill}</span> 
+                                        <span key={`miss-${i}`} className="skill-tag missing">{skill}</span>
                                     ))
                                 ) : (
-                                    <p className="no-skills-message">None! Looks like you have the key skills covered for this domain based on your profile.</p>
+                                    <p className="no-skills-message">None! Looks like you have the key skills covered.</p>
                                 )}
                             </div>
                         </div>
@@ -210,27 +260,61 @@ export default function SkillGapAnalysis() {
                         {/* AI Recommendations Section */}
                         <div className="result-section">
                             <h4><span className="result-icon">💡</span>AI Learning Recommendations:</h4>
-                             {/* Check if recommendations exist and have content */}
                             {analysisResult.recommendations?.length > 0 ? (
                                 <ul>
                                     {analysisResult.recommendations.map((rec, i) => (
                                         <li key={`rec-${i}`}>{rec}</li>
                                     ))}
                                 </ul>
-                             ) : (
-                                 <p className="no-skills-message">No specific learning recommendations generated at this time.</p>
-                             )}
+                               ) : (
+                                   <p className="no-skills-message">No specific learning recommendations generated.</p>
+                               )}
                         </div>
-                    </div>
+
+                        {/* --- *** NEW: Feedback Section *** --- */}
+                        <div className="feedback-section skill-gap-feedback"> {/* Added specific class */}
+                           <h4>Rate the quality of this analysis:</h4>
+                           <FeedbackStars
+                               currentRating={feedbackRating}
+                               onRatingChange={setFeedbackRating}
+                               disabled={isSubmittingFeedback || feedbackSubmittedForId === analysisResult.id}
+                           />
+                           {feedbackRating > 0 && feedbackSubmittedForId !== analysisResult.id && (
+                               <>
+                                   <textarea
+                                       className="feedback-comment"
+                                       placeholder="Optional: Add comments here..."
+                                       value={feedbackComment}
+                                       onChange={(e) => setFeedbackComment(e.target.value)}
+                                       rows={3}
+                                       disabled={isSubmittingFeedback}
+                                   />
+                                   <button
+                                       className="submit-feedback-btn"
+                                       onClick={handleFeedbackSubmit}
+                                       disabled={isSubmittingFeedback || feedbackRating === 0}
+                                   >
+                                       {isSubmittingFeedback ? 'Submitting...' : 'Submit Feedback'}
+                                   </button>
+                               </>
+                           )}
+                           {feedbackSubmittedForId === analysisResult.id && (
+                                <p className="feedback-thanks">🙏 Thank you for your feedback on this analysis!</p>
+                           )}
+                        </div>
+                        {/* --- *** END Feedback Section *** --- */}
+
+                    </div> // End analysis-result
                 )}
+
                  {/* Placeholder when no analysis result is shown and not loading */}
                  {!isApiLoading && !analysisResult && !error && (
-                      <div className="no-analysis-placeholder">
-                           <p>Select a domain and click "Analyze with AI" to see your results.</p>
-                      </div>
+                     <div className="no-analysis-placeholder">
+                         <p>Select a domain and click "Analyze with AI" to see your results.</p>
+                     </div>
                  )}
-            </div>
-            </div>
+            </div> {/* End skill-gap-container */}
+            </div> {/* End skill-gap-page */}
         </AnimatedPage>
     );
 }

@@ -1,405 +1,158 @@
+/* src/Styles/SkillGapAnalysis.css */
+
 /* --- Global & Animation --- */
 body {
     font-family: 'Inter', sans-serif;
     color: #E0E0E0;
-    overflow-y: auto; /* Allows page scrolling if content is too long */
-    background-color: #0B021D; /* Ensure body background is set */
-
-    /* --- Scrollbar Styles for the PAGE (Firefox) --- */
-    scrollbar-color: #9D4EDD #110624; /* thumb track */
-    scrollbar-width: thin; /* Optional: Makes scrollbar slimmer */
+    overflow-y: auto;
+    background-color: #0B021D;
+    scrollbar-color: #9D4EDD #110624;
+    scrollbar-width: thin;
 }
-
-/* --- Scrollbar Styles for the PAGE (Chrome, Edge, Safari) --- */
-body::-webkit-scrollbar {
-    width: 10px; /* Width of the scrollbar */
-}
-body::-webkit-scrollbar-track {
-    background: #110624; /* Color of the tracking area */
-    border-radius: 5px;
-}
-body::-webkit-scrollbar-thumb {
-    background-color: #9D4EDD; /* Color of the scroll thumb */
-    border-radius: 5px;
-    border: 2px solid #110624; /* Creates padding around thumb */
-}
-body::-webkit-scrollbar-thumb:hover {
-    background-color: #B88BFA; /* Slightly lighter on hover */
-}
-
+body::-webkit-scrollbar { width: 10px; }
+body::-webkit-scrollbar-track { background: #110624; border-radius: 5px; }
+body::-webkit-scrollbar-thumb { background-color: #9D4EDD; border-radius: 5px; border: 2px solid #110624; }
+body::-webkit-scrollbar-thumb:hover { background-color: #B88BFA; }
 
 .live-background-canvas {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 1; /* Behind content */
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1;
     background: linear-gradient(-45deg, #0b021d, #1f0a40, #110624, #0b021d);
-    background-size: 400% 400%;
-    animation: gradientBG 25s ease infinite;
+    background-size: 400% 400%; animation: gradientBG 25s ease infinite;
 }
-
-@keyframes gradientBG {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
+@keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
 
 /* --- Page & Container --- */
 .skill-gap-page {
-    display: flex;
-    justify-content: center;
-    align-items: flex-start; /* Align card to top */
-    min-height: 100vh;
-    padding: 4rem 2rem; /* Add padding around the container */
+    display: flex; justify-content: center; align-items: flex-start;
+    min-height: 100vh; padding: 4rem 2rem;
 }
 
 .skill-gap-container {
-    position: relative;
-    z-index: 2; /* Ensure container is above canvas */
-    width: 100%;
-    max-width: 800px; /* Max width of the card */
-    background-color: rgba(11, 2, 29, 0.85); /* Slightly more opaque background */
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 20px;
-    padding: 2.5rem 3rem; /* Adjust padding */
-    backdrop-filter: blur(12px); /* Stronger blur */
-    -webkit-backdrop-filter: blur(12px);
-    animation: fadeIn 0.8s ease-in-out;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); /* Add shadow */
+    position: relative; z-index: 2; width: 100%; max-width: 800px;
+    background-color: rgba(11, 2, 29, 0.85); border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 20px; padding: 2.5rem 3rem; backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px); animation: fadeIn 0.8s ease-in-out;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
+@keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
 /* --- Header --- */
-.skill-gap-header {
-    text-align: center;
-    margin-bottom: 2.5rem; /* Increased space */
-}
-
+.skill-gap-header { text-align: center; margin-bottom: 2.5rem; }
 .skill-gap-header h2 {
-    font-size: 2.5rem;
-    font-weight: 800;
-    margin-bottom: 0.75rem; /* Increased space */
-    color: #FFFFFF;
-     /* Gradient text for header */
-     background: linear-gradient(90deg, #C77DFF, #56CFE1);
-     -webkit-background-clip: text;
-     background-clip: text;
-     -webkit-text-fill-color: transparent;
+    font-size: 2.5rem; font-weight: 800; margin-bottom: 0.75rem; color: #FFFFFF;
+    background: linear-gradient(90deg, #C77DFF, #56CFE1); -webkit-background-clip: text;
+    background-clip: text; -webkit-text-fill-color: transparent;
 }
-
-.skill-gap-header p {
-    color: #A0A0B0;
-    font-size: 1.1rem;
-    max-width: 600px; /* Limit subtitle width */
-    margin: 0 auto; /* Center subtitle */
-    line-height: 1.6; /* Improve readability */
-}
+.skill-gap-header p { color: #A0A0B0; font-size: 1.1rem; max-width: 600px; margin: 0 auto; line-height: 1.6; }
 
 /* --- Form Elements --- */
-.skill-gap-container label {
-    display: block;
-    font-weight: 600;
-    margin-bottom: 0.75rem;
-    color: #C77DFF; /* Label color */
-    font-size: 0.95rem; /* Slightly smaller label */
-}
-
+.skill-gap-container label { display: block; font-weight: 600; margin-bottom: 0.75rem; color: #C77DFF; font-size: 0.95rem; }
 .skills-textarea, .domain-select {
-    width: 100%;
-    background-color: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 10px;
-    padding: 14px 18px;
-    color: #FFFFFF;
-    font-size: 1rem;
-    margin-bottom: 1.5rem;
-    transition: all 0.3s ease;
-    font-family: inherit; /* Ensure select uses the page font */
+    width: 100%; background-color: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px; padding: 14px 18px; color: #FFFFFF; font-size: 1rem;
+    margin-bottom: 1.5rem; transition: all 0.3s ease; font-family: inherit;
 }
-
-/* Specific styling for select arrow (limited cross-browser support) */
 .domain-select {
-    appearance: none; /* Remove default arrow */
-    -webkit-appearance: none;
-    -moz-appearance: none;
+    appearance: none; -webkit-appearance: none; -moz-appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23A0A0B0' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 1rem center;
-    background-size: 1em;
-    padding-right: 2.5rem; /* Make space for the arrow */
+    background-repeat: no-repeat; background-position: right 1rem center; background-size: 1em; padding-right: 2.5rem;
 }
-
-/* --- Attempt to Style Select Options (Limited Browser Support) --- */
-.domain-select option,
-.domain-select optgroup {
-    background-color: rgba(11, 2, 29, 0.95); /* Desired dark background */
-    color: #E0E0E0; /* Light text */
-    padding: 8px 12px; /* Add some padding if supported */
-    font-family: 'Inter', sans-serif; /* Try to set font */
-}
-
-/* Style for optgroup labels */
-.domain-select optgroup {
-    font-weight: bold;
-    font-style: italic;
-    color: #C77DFF; /* Purple label */
-    background-color: rgba(26, 15, 48, 0.9); /* Slightly different background for group */
-}
-
-/* Hover effect for options (might work in some browsers like Firefox) */
-.domain-select option:hover {
-    background-color: #7B2CBF; /* Purple hover */
-    color: #FFFFFF;
-}
-/* --- End Attempt --- */
-
-
-.skills-textarea {
-    min-height: 120px;
-    resize: vertical;
-}
-
-.skills-textarea:focus, .domain-select:focus {
-    outline: none;
-    background-color: rgba(11, 2, 29, 0.5); /* Darker on focus */
-    border-color: #9D4EDD;
-    box-shadow: 0 0 15px rgba(157, 78, 221, 0.6);
-}
-
-.skills-textarea:disabled {
-    background-color: rgba(0,0,0,0.2);
-    cursor: not-allowed;
-    opacity: 0.7;
-}
+.domain-select option, .domain-select optgroup { background-color: rgba(11, 2, 29, 0.95); color: #E0E0E0; }
+.domain-select optgroup { font-weight: bold; font-style: italic; color: #C77DFF; background-color: rgba(26, 15, 48, 0.9); }
+.domain-select option:hover { background-color: #7B2CBF; color: #FFFFFF; }
+.skills-textarea { min-height: 120px; resize: vertical; }
+.skills-textarea:focus, .domain-select:focus { outline: none; background-color: rgba(11, 2, 29, 0.5); border-color: #9D4EDD; box-shadow: 0 0 15px rgba(157, 78, 221, 0.6); }
+.skills-textarea:disabled { background-color: rgba(0,0,0,0.2); cursor: not-allowed; opacity: 0.7; }
 
 /* --- Buttons & Actions --- */
-.actions-footer {
-    display: flex;
-    justify-content: space-between;
-    gap: 1rem;
-    margin-top: 2rem;
-}
-
-.analyze-btn, .return-btn {
-    border: none;
-    border-radius: 10px;
-    padding: 16px 28px;
-    font-size: 1.1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.analyze-btn {
-    background-color: #7B2CBF;
-    color: #FFFFFF;
-    flex-grow: 1; /* Takes more space */
-}
-
-.analyze-btn:hover:not(:disabled) { /* Added :not(:disabled) */
-    background-color: #9D4EDD;
-    transform: translateY(-3px);
-    box-shadow: 0 4px 15px rgba(157, 78, 221, 0.4);
-}
-
-.return-btn {
-    background-color: rgba(255, 255, 255, 0.05); /* Make it dimmer */
-    color: #A0A0B0; /* Dimmer text */
-    border: 1px solid #4a3470; /* Use a subtle border */
-}
-
-.return-btn:hover:not(:disabled) { /* Added :not(:disabled) */
-    background-color: rgba(255, 255, 255, 0.1);
-    border-color: #7a6c90;
-    color: #E0E0E0;
-}
-
-/* Disabled state for BOTH buttons */
-.actions-footer button:disabled {
-     background-color: #333 !important;
-     color: #777 !important;
-     border-color: #333 !important; /* Ensure border color changes too */
-     cursor: not-allowed;
-     transform: none !important;
-     box-shadow: none !important;
-     opacity: 0.7;
-}
+.actions-footer { display: flex; justify-content: space-between; gap: 1rem; margin-top: 2rem; }
+.analyze-btn, .return-btn { border: none; border-radius: 10px; padding: 16px 28px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
+.analyze-btn { background-color: #7B2CBF; color: #FFFFFF; flex-grow: 1; }
+.analyze-btn:hover:not(:disabled) { background-color: #9D4EDD; transform: translateY(-3px); box-shadow: 0 4px 15px rgba(157, 78, 221, 0.4); }
+.return-btn { background-color: rgba(255, 255, 255, 0.05); color: #A0A0B0; border: 1px solid #4a3470; }
+.return-btn:hover:not(:disabled) { background-color: rgba(255, 255, 255, 0.1); border-color: #7a6c90; color: #E0E0E0; }
+.actions-footer button:disabled { background-color: #333 !important; color: #777 !important; border-color: #333 !important; cursor: not-allowed; transform: none !important; box-shadow: none !important; opacity: 0.7; }
 
 /* --- Analysis Results --- */
-.analysis-result {
-    margin-top: 3rem; /* Increased space */
-    padding-top: 2rem; /* Increased space */
-    border-top: 1px solid rgba(255, 255, 255, 0.15);
-    animation: fadeInResult 0.6s ease-out; /* Separate animation */
-}
-@keyframes fadeInResult {
-     from { opacity: 0; transform: translateY(10px); }
-     to { opacity: 1; transform: translateY(0); }
-}
+.analysis-result { margin-top: 3rem; padding-top: 2rem; border-top: 1px solid rgba(255, 255, 255, 0.15); animation: fadeInResult 0.6s ease-out; }
+@keyframes fadeInResult { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.analysis-result h3 { text-align: center; font-size: 1.8rem; margin-bottom: 2.5rem; color: #FFFFFF; }
+.result-section { margin-bottom: 2.5rem; }
+.result-section h4 { font-size: 1.25rem; color: #E0E0E0; margin-bottom: 1.2rem; display: flex; align-items: center; border-bottom: 1px solid #4a3470; padding-bottom: 0.6rem; }
+.result-section h4:has(span.result-icon:contains("✅")) { color: #8AFF8A; border-bottom-color: rgba(138, 255, 138, 0.5);}
+.result-section h4:has(span.result-icon:contains("🎯")) { color: #ffca3a; border-bottom-color: rgba(255, 202, 58, 0.5);}
+.result-section h4:has(span.result-icon:contains("💡")) { color: #56CFE1; border-bottom-color: rgba(86, 207, 225, 0.5);}
+.result-icon { margin-right: 0.75rem; font-size: 1.4rem; display: inline-block; vertical-align: middle; }
+.missing-skills-container, .acquired-skills-container { display: flex; flex-wrap: wrap; gap: 0.75rem; padding-top: 0.5rem; }
+.skill-tag { color: white; padding: 0.5rem 1rem; border-radius: 15px; font-weight: 500; font-size: 0.9rem; transition: transform 0.2s ease, box-shadow 0.2s ease; border: 1px solid transparent; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); }
+.skill-tag:hover { transform: scale(1.05); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); }
+.skill-tag.acquired { background-color: rgba(42, 157, 143, 0.7); border-color: rgba(60, 206, 189, 0.7); }
+.skill-tag.missing { background-color: rgba(231, 111, 81, 0.7); border-color: rgba(244, 162, 97, 0.7); }
+.no-skills-message { font-style: italic; color: #8a8a9e; margin-left: 0.5rem; padding: 0.5rem 0; }
+.result-section ul { list-style: none; padding-left: 0; }
+.result-section li { background-color: rgba(255, 255, 255, 0.05); padding: 0.85rem 1.2rem; border-radius: 8px; margin-bottom: 0.75rem; border-left: 4px solid #56CFE1; line-height: 1.6; color: #C0C0D0; transition: background-color 0.2s ease, border-left-color 0.2s ease; }
+.result-section li:hover { background-color: rgba(86, 207, 225, 0.1); border-left-color: #7FFFeF; }
 
-
-.analysis-result h3 {
-    text-align: center;
-    font-size: 1.8rem;
-    margin-bottom: 2.5rem; /* Increased spacing */
-    color: #FFFFFF;
-}
-
-.result-section {
-    margin-bottom: 2.5rem; /* Increased spacing */
-}
-
-.result-section h4 {
-    font-size: 1.25rem; /* Slightly larger heading */
-    color: #E0E0E0; /* Default white heading for sections */
-    margin-bottom: 1.2rem; /* More space below heading */
-    display: flex;
-    align-items: center;
-    border-bottom: 1px solid #4a3470; /* Add subtle separator */
-    padding-bottom: 0.6rem;
-}
-/* Specific colors for icons/titles based on content */
-.result-section h4:has(span.result-icon:contains("✅")) { color: #8AFF8A; border-bottom-color: rgba(138, 255, 138, 0.5);} /* Green for Acquired */
-.result-section h4:has(span.result-icon:contains("🎯")) { color: #ffca3a; border-bottom-color: rgba(255, 202, 58, 0.5);} /* Yellow for Missing */
-.result-section h4:has(span.result-icon:contains("💡")) { color: #56CFE1; border-bottom-color: rgba(86, 207, 225, 0.5);} /* Cyan for Recs */
-
-
-.result-icon {
-    margin-right: 0.75rem; /* More space for icon */
-    font-size: 1.4rem; /* Larger icon */
-    display: inline-block; /* Ensure proper alignment */
-    vertical-align: middle;
-}
-
-/* Containers for skill tags */
-.missing-skills-container,
-.acquired-skills-container { /* Style both containers */
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem; /* Space between tags */
-    padding-top: 0.5rem; /* Space above tags */
-}
-
-/* Base Skill Tag Style */
-.skill-tag {
-    color: white;
-    padding: 0.5rem 1rem;
-    border-radius: 15px; /* Pill shape */
-    font-weight: 500;
-    font-size: 0.9rem; /* Slightly smaller text */
-    transition: transform 0.2s ease, box-shadow 0.2s ease; /* Added shadow transition */
-    border: 1px solid transparent; /* Base border */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Subtle shadow */
-}
-.skill-tag:hover {
-     transform: scale(1.05); /* Subtle grow on hover */
-     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Enhance shadow on hover */
-}
-
-
-/* --- Specific styles for Acquired vs Missing --- */
-.skill-tag.acquired {
-    background-color: rgba(42, 157, 143, 0.7); /* Teal green background */
-    border-color: rgba(60, 206, 189, 0.7); /* Teal green border */
-}
-.skill-tag.missing {
-    background-color: rgba(231, 111, 81, 0.7); /* Coral red background */
-    border-color: rgba(244, 162, 97, 0.7); /* Coral red border */
-}
-
-/* Message shown when no skills are listed */
-.no-skills-message {
-     font-style: italic;
-     color: #8a8a9e; /* Dim color */
-     margin-left: 0.5rem; /* Indent slightly */
-     padding: 0.5rem 0; /* Add some vertical space */
-}
-
-/* Recommendations List */
-.result-section ul {
-    list-style: none;
-    padding-left: 0;
-}
-
-.result-section li {
-    background-color: rgba(255, 255, 255, 0.05);
-    padding: 0.85rem 1.2rem; /* Slightly more padding */
-    border-radius: 8px;
-    margin-bottom: 0.75rem; /* More space between items */
-    border-left: 4px solid #56CFE1; /* Thicker accent border */
-    line-height: 1.6; /* Improve readability */
-    color: #C0C0D0; /* Slightly brighter list text */
-    transition: background-color 0.2s ease, border-left-color 0.2s ease; /* Add transition */
-}
-.result-section li:hover {
-     background-color: rgba(86, 207, 225, 0.1); /* Use accent color on hover */
-     border-left-color: #7FFFeF; /* Lighter accent */
-}
-
-
-/* --- Loading & Error & Placeholders --- */
-.loading-spinner {
-    text-align: center;
-    margin-top: 2rem; /* More space */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem; /* More space between spinner and text */
-    color: #A0A0B0;
-    min-height: 150px; /* Give it some height */
-    justify-content: center;
- }
-.spinner {
-    width: 50px; /* Larger spinner */
-    height: 50px;
-    border: 5px solid rgba(255, 255, 255, 0.2);
-    border-top-color: #9D4EDD;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
- }
+/* --- Loading & Placeholders --- */
+.loading-spinner { text-align: center; margin-top: 2rem; display: flex; flex-direction: column; align-items: center; gap: 1rem; color: #A0A0B0; min-height: 150px; justify-content: center; }
+.spinner { width: 50px; height: 50px; border: 5px solid rgba(255, 255, 255, 0.2); border-top-color: #9D4EDD; border-radius: 50%; animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
+.no-analysis-placeholder { text-align: center; margin-top: 3rem; color: #7a6c90; font-style: italic; min-height: 150px; display: flex; align-items: center; justify-content: center; padding: 1rem; background-color: rgba(255, 255, 255, 0.03); border-radius: 10px; }
+.error-message { background-color: rgba(255, 77, 109, 0.2); color: #ff4d6d; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; text-align: center; border: 1px solid rgba(255, 77, 109, 0.5); }
 
-/* Placeholder shown before analysis */
-.no-analysis-placeholder {
-     text-align: center;
-     margin-top: 3rem;
-     color: #7a6c90;
-     font-style: italic;
-     min-height: 150px;
-     display: flex;
-     align-items: center;
-     justify-content: center;
-     padding: 1rem;
-     background-color: rgba(255, 255, 255, 0.03);
-     border-radius: 10px;
-}
-
-/* Error message styling remains the same */
-.error-message {
-    background-color: rgba(255, 77, 109, 0.2);
-    color: #ff4d6d;
-    padding: 1rem;
-    border-radius: 8px;
-    margin-bottom: 1.5rem;
+/* --- *** NEW: Feedback Section Styles for Skill Gap *** --- */
+.feedback-section.skill-gap-feedback {
+    margin-top: 3rem; /* Space above feedback */
+    padding: 2rem;
+    background-color: rgba(31, 17, 56, 0.6); /* Slightly different bg */
+    border: 1px solid #4a3470;
+    border-radius: 12px;
     text-align: center;
-    border: 1px solid rgba(255, 77, 109, 0.5); /* Add subtle border */
 }
+.feedback-section.skill-gap-feedback h4 {
+    font-size: 1.1rem;
+    color: #A0A0B0;
+    margin-bottom: 1rem;
+    font-weight: 500;
+    border-bottom: none; /* Remove border from heading */
+    padding-bottom: 0;
+}
+.feedback-section.skill-gap-feedback .stars-container {
+    justify-content: center; /* Center stars */
+    margin-bottom: 1.5rem;
+}
+.feedback-comment { /* Reusing styles from roadmap.css */
+    width: 100%; max-width: 500px; margin: 0 auto 1rem auto; display: block;
+    background-color: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px; padding: 12px 16px; color: #FFFFFF; font-size: 0.95rem;
+    resize: vertical; min-height: 60px; font-family: inherit;
+}
+.feedback-comment:focus { outline: none; border-color: #9D4EDD; box-shadow: 0 0 10px rgba(157, 78, 221, 0.5); }
+.feedback-comment:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.submit-feedback-btn { /* Reusing styles from roadmap.css */
+    padding: 10px 20px; font-size: 0.95rem; font-weight: 600;
+    color: #0B021D; background-color: #8AFF8A; border: none; border-radius: 8px;
+    cursor: pointer; transition: all 0.2s ease;
+}
+.submit-feedback-btn:hover:not(:disabled) { background-color: #AFFFAD; transform: scale(1.05); }
+.submit-feedback-btn:disabled { background-color: #555; color: #999; cursor: not-allowed; opacity: 0.7; transform: none; }
+
+.feedback-thanks { /* Reusing styles from roadmap.css */
+    margin-top: 1rem; color: #8AFF8A; font-weight: 500; font-style: italic;
+}
+/* --- *** END Feedback Section Styles *** --- */
+
 
 /* --- Responsive Adjustments --- */
 @media (max-width: 600px) {
-    .skill-gap-page { padding: 2rem 1rem; } /* Reduce page padding */
+    .skill-gap-page { padding: 2rem 1rem; }
     .skill-gap-container { padding: 1.5rem; }
     .skill-gap-header h2 { font-size: 2rem; }
-    .actions-footer { flex-direction: column; gap: 0.5rem; } /* Stack buttons closer */
+    .actions-footer { flex-direction: column; gap: 0.5rem; }
     .analyze-btn, .return-btn { padding: 14px 20px; font-size: 1rem; }
     .result-section h4 { font-size: 1.15rem; }
     .skill-tag { font-size: 0.85rem; padding: 0.4rem 0.8rem; }
     .result-section li { padding: 0.7rem 1rem; }
+    .feedback-section.skill-gap-feedback { padding: 1.5rem; } /* Adjust feedback padding */
 }
-
