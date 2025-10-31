@@ -6,7 +6,7 @@ import '../Styles/JobRecommendations.css';
 import { useApi } from '../hooks/useApi';
 import useParticleBackground from '../hooks/UseParticleBackground';
 import toast from 'react-hot-toast';
-import { Bot, Search, MapPin } from 'lucide-react';
+import { Bot, Search, MapPin, History} from 'lucide-react';
 
 export default function JobRecommendations() {
     const navigate = useNavigate();
@@ -26,6 +26,8 @@ export default function JobRecommendations() {
     const [showQueryInput, setShowQueryInput] = useState(false);
     const [isGeneratingQuery, setIsGeneratingQuery] = useState(false);
     const [isSearchingJobs, setIsSearchingJobs] = useState(false);
+    const [latestRecommendation, setLatestRecommendation] = useState(null); // null: loading, object: data, false: no history
+    const [isFetchingHistory, setIsFetchingHistory] = useState(true);
 
     // Fetch initial profile data
     useEffect(() => {
@@ -43,7 +45,30 @@ export default function JobRecommendations() {
             setShowQueryInput(false);
             // setLocationsString('India'); // Keep location default on profile load
         };
+        const fetchLatestHistory = async () => {
+             setIsFetchingHistory(true);
+             try {
+                 const data = await apiFetch('/api/user/job-history/latest');
+                 if (data && data.latest_recommendation) {
+                     setLatestRecommendation(data.latest_recommendation);
+                 } else {
+                     setLatestRecommendation(false); // No history found or invalid data
+                 }
+             } catch (e) {
+                 // The useApi hook will set the 'error' state.
+                 // We just need to ensure we stop loading and set a default.
+                 console.error("Failed to fetch latest job history:", e);
+                 setLatestRecommendation(false); // Set to "no history" state on error
+             } finally {
+                 // --- THIS IS THE FIX ---
+                 // This block runs *no matter what* (success, fail, or error)
+                 setIsFetchingHistory(false);
+                 // -----------------------
+             }
+        };
+        setError(null);
         fetchProfileForJobs();
+        fetchLatestHistory();
     }, [apiFetch, setError]);
 
     // Show errors via toast
@@ -131,6 +156,10 @@ export default function JobRecommendations() {
             } else {
                  toast.success(`Found ${data.jobs.length} unique job(s)!`);
             }
+            const historyData = await apiFetch('/api/user/job-history/latest');
+             if (historyData && historyData.latest_recommendation) {
+                 setLatestRecommendation(historyData.latest_recommendation);
+             }
         } else if (!error) {
             console.error("Job search returned no data or invalid format.");
             if (setError) setError("No job results found or API returned invalid format.");
@@ -150,6 +179,32 @@ export default function JobRecommendations() {
                     <div className="jobs-header">
                         <h1 className="jobs-title">AI-Powered Job Search</h1>
                         <p className="jobs-subtitle">Get AI query suggestions, add locations, and find jobs across multiple roles and cities!</p>
+                    </div>
+
+                    <div className="view-history-container">
+                        {isFetchingHistory && (
+                             <button className="view-history-btn" disabled>
+                                 <span className="spinner-sm"></span> Loading History...
+                             </button>
+                        )}
+                        {!isFetchingHistory && latestRecommendation && (
+                             <button className="view-history-btn" onClick={() => navigate('/JobHistory')}>
+                                 <History size={18} />
+                                 <div className="history-btn-text">
+                                     <strong>View Full History</strong>
+                                     <span>Last search: "{latestRecommendation.base_queries}" ({Array.isArray(latestRecommendation.locations) ? latestRecommendation.locations.join(', ') : 'N/A'})</span>
+                                 </div>
+                             </button>
+                        )}
+                         {!isFetchingHistory && !latestRecommendation && (
+                             <button className="view-history-btn" disabled>
+                                 <History size={18} />
+                                 <div className="history-btn-text">
+                                     <strong>View Full History</strong>
+                                     <span>No previous searches found.</span>
+                                 </div>
+                             </button>
+                        )}
                     </div>
 
                     {/* Form */}

@@ -13,6 +13,7 @@ import Achievements from './Pages/Achievements';
 import JobRecommendations from './Pages/JobRecommendations';
 import PracticePage from './Pages/PracticePage';
 import PracticeQuestionsPage from './Pages/PracticeQuestionsPage';
+import JobHistory from './Pages/JobHistory';
 
 
 function AnimatedRoutes() {
@@ -31,6 +32,7 @@ function AnimatedRoutes() {
         <Route path='/Achievements' element={<Achievements/>}/>
         <Route path='/JobRecommendations' element={<JobRecommendations/>}/>
         <Route path='/PracticePage' element={<PracticePage/>}/>
+        <Route path='/JobHistory' element={<JobHistory/>}/>
         <Route path='PracticeQuestionsPage' element={<PracticeQuestionsPage/>}/>
       </Routes>
     </AnimatePresence>

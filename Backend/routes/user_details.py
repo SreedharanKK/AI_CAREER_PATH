@@ -7,6 +7,7 @@ from PyPDF2 import PdfReader
 from db_config import get_db_connection
 from config import SECRET_KEY
 from datetime import datetime
+import traceback
 import threading # <-- Import threading
 
 # --- NEW: Import the skill extraction function ---
@@ -21,36 +22,32 @@ except ImportError:
 user_details_bp = Blueprint("user_details", __name__)
 
 # === File Storage Paths ===
-BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+BASE_DIR = os.path.abspath(os.path.dirname(os.path.abspath(__file__)))
 # Navigate up one level ('..') from 'routes' directory to the project root
 UPLOAD_FOLDER = os.path.join(BASE_DIR, "..", "uploads", "resumes")
-EXTRACT_FOLDER = os.path.join(BASE_DIR, "..", "uploads", "extracted")
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-os.makedirs(EXTRACT_FOLDER, exist_ok=True)
 
 
 @user_details_bp.route("/update", methods=["POST"])
 def update_user_details():
-    # ✅ Step 1: Verify Token
     token = request.cookies.get("token")
     if not token:
         return jsonify({"error": "Not logged in"}), 401
 
-    user_id = None # Initialize user_id
+    user_id = None
     try:
         decoded = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
         user_id = decoded["user_id"]
     except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
         return jsonify({"error": "Invalid or expired session"}), 401
 
-    # ✅ Step 2: Connect to Database
     conn = get_db_connection()
     if not conn:
         return jsonify({"success": False, "error": "Database connection failed"}), 500
 
     cursor = conn.cursor(dictionary=True)
-    new_resume_processed = False # --- Flag to track if a new resume was handled ---
+    new_resume_processed = False # Flag to trigger skill extraction
 
     try:
         # Fetch Existing Details
@@ -61,29 +58,41 @@ def update_user_details():
         dob_from_form = request.form.get("dob")
         final_dob = None
         if dob_from_form:
-            try: # Try specific format first if necessary
-                 dt_object = datetime.strptime(dob_from_form, '%a, %d %b %Y %H:%M:%S %Z')
+            try:
+                 dt_object = datetime.strptime(dob_from_form, '%Y-%m-%d')
                  final_dob = dt_object.strftime('%Y-%m-%d')
-            except ValueError: # Assume YYYY-MM-DD
-                 final_dob = dob_from_form
+            except ValueError:
+                 try:
+                     dt_object = datetime.strptime(dob_from_form, '%a, %d %b %Y %H:%M:%S %Z')
+                     final_dob = dt_object.strftime('%Y-%m-%d')
+                 except ValueError:
+                     print(f"Warning: Could not parse DOB string: {dob_from_form}")
+                     final_dob = existing_details.get("dob")
         else:
-            final_dob = existing_details.get("dob") # Keep existing if none provided
+            final_dob = existing_details.get("dob")
 
         # Safely parse JSON strings from form or use existing lists
-        def parse_json_list_from_form(form_key, existing_list):
+        def parse_json_list_from_form(form_key, existing_db_value):
             form_value = request.form.get(form_key)
-            if form_value is not None: # Check if the key exists in the form data
+            if form_value is not None:
                 try:
-                    # Attempt to parse assuming it might be JSON from frontend state
                     parsed = json.loads(form_value)
                     if isinstance(parsed, list):
-                        return json.dumps(parsed) # Re-stringify for DB
+                        return json.dumps(parsed)
                 except (json.JSONDecodeError, TypeError):
-                    # If parsing fails or it's not JSON, treat as comma-separated
                     items = [v.strip() for v in form_value.split(",") if v.strip()]
-                    return json.dumps(items) # Stringify the list
-            # If not in form, return the stringified existing list or empty list
-            return json.dumps(existing_list or [])
+                    return json.dumps(items)
+            
+            # Handle existing value (from DB or default dict)
+            if existing_db_value:
+                 if isinstance(existing_db_value, list): return json.dumps(existing_db_value)
+                 # Check if it's a valid JSON string before returning
+                 try: 
+                     json.loads(existing_db_value)
+                     return existing_db_value
+                 except (json.JSONDecodeError, TypeError):
+                     return json.dumps([]) # It was invalid, return empty list
+            return json.dumps([])
 
         # Merge New Data with Existing Data
         updated_data = {
@@ -93,98 +102,97 @@ def update_user_details():
             "stream": request.form.get("stream") or existing_details.get("stream"),
             "college": request.form.get("college") or existing_details.get("college"),
             "year": request.form.get("year") or existing_details.get("year"),
-            # --- Use helper to handle skills/domain ---
             "skills": parse_json_list_from_form("skills", existing_details.get("skills")),
             "domain": parse_json_list_from_form("domain", existing_details.get("domain")),
-            # ----------------------------------------
-            "resume_path": existing_details.get("resume_path"), # Start with existing paths
+            "resume_path": existing_details.get("resume_path"),
             "extracted_path": existing_details.get("extracted_path")
         }
 
         # --- Handle Resume File Upload ---
         resume_file = request.files.get("resume")
-        if resume_file and resume_file.filename: # Check if a file was actually uploaded
+        if resume_file and resume_file.filename:
             try:
-                # Securely save the resume
+                # 1. Save the resume
                 filename = secure_filename(f"{user_id}_{datetime.now().strftime('%Y%m%d%H%M%S')}_{resume_file.filename}")
                 resume_save_path = os.path.join(UPLOAD_FOLDER, filename)
                 resume_file.save(resume_save_path)
-                updated_data["resume_path"] = f"uploads/resumes/{filename}" # Relative path for serving
+                
+                # --- *** THIS IS THE FIX *** ---
+                updated_data["resume_path"] = f"uploads/resumes/{filename}" # Set relative path
                 print(f"Saved new resume to: {resume_save_path}")
 
-                # Extract text from the new resume
+                # 2. Extract text from the new resume
                 extracted_text = extract_resume_text(resume_save_path)
-                if "Error extracting resume" in extracted_text or "Unsupported file format" in extracted_text:
+                
+                if "Error" in extracted_text or "Unsupported" in extracted_text:
                      print(f"Warning: Issue extracting text from {filename}: {extracted_text}")
-                     updated_data["extracted_path"] = None # Indicate extraction failure
+                     # --- *** NEW: Save NULL to the text table *** ---
+                     cursor.execute(
+                         "INSERT INTO extracted_resume_text (user_id, extracted_text) VALUES (%s, %s) ON DUPLICATE KEY UPDATE extracted_text = %s",
+                         (user_id, None, None)
+                     )
+                     # ------------------------------------------------
                 else:
-                    extracted_filename = os.path.splitext(filename)[0] + "_extracted.txt"
-                    extracted_file_path = os.path.join(EXTRACT_FOLDER, extracted_filename)
-                    with open(extracted_file_path, "w", encoding="utf-8") as f:
-                        f.write(extracted_text)
-                    updated_data["extracted_path"] = f"uploads/extracted/{extracted_filename}" # Relative path
-                    print(f"Saved extracted text to: {extracted_file_path}")
-                    new_resume_processed = True # --- Set flag indicating success ---
-
+                    # --- *** NEW: Save extracted text to DATABASE *** ---
+                    cursor.execute(
+                        "INSERT INTO extracted_resume_text (user_id, extracted_text) VALUES (%s, %s) ON DUPLICATE KEY UPDATE extracted_text = %s",
+                        (user_id, extracted_text, extracted_text)
+                    )
+                    print(f"Saved extracted text to DATABASE for user {user_id}")
+                    # --- *** REMOVED writing text to file *** ---
+                    new_resume_processed = True
             except Exception as file_error:
                 print(f"❌ Error processing uploaded resume file: {file_error}")
-                # Don't update resume/extracted paths if saving/extraction failed
+                traceback.print_exc()
+                # Do not change paths, keep the old ones
                 updated_data["resume_path"] = existing_details.get("resume_path")
-                updated_data["extracted_path"] = existing_details.get("extracted_path")
-                # Optionally return an error to the user:
-                # conn.rollback()
-                # cursor.close()
-                # conn.close()
-                # return jsonify({"success": False, "error": "Failed to process uploaded resume."}), 500
-
 
         # Decide whether to INSERT or UPDATE
         if 'id' in existing_details:
-            # UPDATE existing record
             query = """
                 UPDATE user_details SET dob=%s, place=%s, degree=%s, stream=%s,
                        skills=%s, domain=%s, college=%s, year=%s,
-                       resume_path=%s, extracted_path=%s
+                       resume_path=%s
                 WHERE user_id=%s
             """
             params = (
                 updated_data["dob"], updated_data["place"], updated_data["degree"], updated_data["stream"],
                 updated_data["skills"], updated_data["domain"], updated_data["college"], updated_data["year"],
-                updated_data["resume_path"], updated_data["extracted_path"], user_id,
+                updated_data["resume_path"], 
+                user_id,
             )
         else:
-            # INSERT new record
             query = """
                 INSERT INTO user_details (user_id, dob, place, degree, stream, skills,
-                                          domain, college, year, resume_path, extracted_path)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                                          domain, college, year, resume_path)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
             params = (
                 user_id, updated_data["dob"], updated_data["place"], updated_data["degree"], updated_data["stream"],
                 updated_data["skills"], updated_data["domain"], updated_data["college"], updated_data["year"],
-                updated_data["resume_path"], updated_data["extracted_path"],
+                updated_data["resume_path"],
             )
 
         cursor.execute(query, params)
-        conn.commit() # Commit database changes
+        conn.commit()
+        # This log will now show the path that was *actually* saved
+        print(f"✅ Successfully saved user_details for user {user_id}. extracted_path: {updated_data['extracted_path']}")
 
-        # --- *** NEW: Trigger Skill Extraction if New Resume Processed *** ---
+        # Trigger Skill Extraction in background if new resume was processed
         if new_resume_processed and trigger_skill_extraction:
             extraction_thread = threading.Thread(
                 target=trigger_skill_extraction,
                 args=(user_id,),
-                name=f"SkillExtractThread-User{user_id}" # Optional thread name
+                name=f"SkillExtractThread-User{user_id}"
             )
             extraction_thread.start()
             print(f"✅ Started background skill extraction for user_id: {user_id} after resume update.")
-        elif new_resume_processed:
-            print("ℹ️ New resume processed, but skill extractor function not available. Skipping background extraction.")
-        # ------------------------------------------------------------------
-
+        
         return jsonify({"success": True, "message": "User details updated successfully"}), 200
 
     except Exception as e:
         print(f"❌ Error updating user details (User ID: {user_id}): {e}")
+        traceback.print_exc()
         conn.rollback()
         return jsonify({"success": False, "error": "An internal server error occurred during update."}), 500
 

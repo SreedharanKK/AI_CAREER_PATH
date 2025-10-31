@@ -23,6 +23,7 @@ export default function Dashboard() {
     const [latestRecs, setLatestRecs] = useState(null);
     const [newsFeed, setNewsFeed] = useState(null);
     const [initialLoading, setInitialLoading] = useState(true);
+    const [latestJobSearch, setLatestJobSearch] = useState(null);
 
     const navigate = useNavigate();
     const canvasRef = useRef(null);
@@ -44,6 +45,7 @@ export default function Dashboard() {
         setAchievementsSummary(null);
         setLatestRecs(null);
         setNewsFeed(null);
+        setLatestJobSearch(null);
 
         const fetchAllData = async () => {
           console.log("Dashboard: Starting data fetch...");
@@ -53,7 +55,8 @@ export default function Dashboard() {
             apiFetch('/api/user/roadmap/latest'),
             apiFetch('/api/user/learning-recommendations/latest'),
             apiFetch('/api/user/achievements/summary'),
-            apiFetch('/api/user/news-feed')
+            apiFetch('/api/user/news-feed'),
+            apiFetch('/api/user/job-search/latest')
           ]);
           console.log("Dashboard: Fetch results received:", results);
 
@@ -92,6 +95,12 @@ export default function Dashboard() {
           } else {
                console.warn("News feed fetch:", results[5].status === 'rejected' ? results[5].reason : "Invalid data");
                setNewsFeed([]); // Set empty array on failure/invalid data
+          }
+          if (results[6].status === 'fulfilled' && results[6].value?.latest_search) {
+              setLatestJobSearch(results[6].value.latest_search);
+          } else {
+               console.warn("Job search history fetch failed");
+               setLatestJobSearch(null); // Keep as null (or set to 'false' if you prefer)
           }
 
           console.log("Dashboard: Initial data processing complete.");
@@ -280,10 +289,21 @@ export default function Dashboard() {
                              </div>
                              {/* Job Recs Card */}
                              <div className="dashboard-card clickable card-job-recs" onClick={() => navigate('/JobRecommendations')}>
-                                  <div className="card-header"><FontAwesomeIcon icon={faBriefcase} className="card-icon briefcase-icon" /><h3>Job Search</h3></div>
-                                  <p className="card-description">Find relevant opportunities.</p>
-                                  <p className="analysis-preview-none">Click to search jobs.</p>
-                             </div>
+                                 <div className="card-header"><FontAwesomeIcon icon={faBriefcase} className="card-icon briefcase-icon" /><h3>Job Search</h3></div>
+                                 <p className="card-description">Find relevant job opportunities.</p>
+                                 {/* Show latest search summary */}
+                                 {latestJobSearch ? (
+                                    <div className="analysis-preview">
+                                        <h4><span className="preview-icon">🔍</span>Latest Search:</h4>
+                                        <p><strong><span className="preview-icon">⌨️</span>Queries:</strong> "{latestJobSearch.base_queries}"</p>
+                                        {Array.isArray(latestJobSearch.locations) && latestJobSearch.locations.length > 0 &&
+                                            <p><strong><span className="preview-icon">📍</span>Locations:</strong> {latestJobSearch.locations.join(', ')}</p> }
+                                        <p><strong><span className="preview-icon">📊</span>Found:</strong> {latestJobSearch.job_count} jobs</p>
+                                    </div>
+                                 ) : (
+                                    <p className="analysis-preview-none">{initialLoading || isApiLoading ? 'Loading...' : 'No recent searches.'}</p>
+                                 )}
+                            </div>
                              {/* News Feed Card */}
                             <div className="dashboard-card card-news-feed">
                                  <div className="card-header"> <FontAwesomeIcon icon={faNewspaper} className="card-icon newspaper-icon"/> <h3>Tech Feed</h3> </div>

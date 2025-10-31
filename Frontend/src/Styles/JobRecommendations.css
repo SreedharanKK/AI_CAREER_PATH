@@ -76,6 +76,62 @@ body::-webkit-scrollbar-thumb:hover { background-color: #9d4edd; }
   margin: 0 auto;
 }
 
+.view-history-container {
+    margin-bottom: 2rem; /* Space between this button and the form */
+}
+
+.view-history-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    background-color: rgba(11, 2, 29, 0.85); /* Match form background */
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 16px; /* Match form radius */
+    color: #E0E0E0;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+.view-history-btn:not(:disabled):hover {
+    border-color: #56CFE1; /* Cyan border on hover */
+    transform: translateY(-4px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+.view-history-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.view-history-btn .spinner-sm {
+    margin: 0; /* Remove default margin */
+}
+
+.history-btn-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+.history-btn-text strong {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #fff;
+}
+.history-btn-text span {
+    font-size: 0.9rem;
+    color: #A0A0B0;
+    font-style: italic;
+    /* Truncate long history text */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 600px; /* Adjust as needed */
+}
+
 /* --- Search Form Card --- */
 .job-search-form {
   padding: 2.5rem;
