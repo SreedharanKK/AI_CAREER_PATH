@@ -1,0 +1,30 @@
+/* src/Styles/FeedbackStars.css */
+.stars-container {
+    display: flex;
+    gap: 4px; /* Adjust spacing between stars */
+    cursor: pointer;
+}
+
+.stars-container.disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.star-icon {
+    color: #a0a0b0; /* Default empty star color */
+    transition: color 0.2s ease-in-out, transform 0.1s ease-in-out;
+}
+
+.star-icon.filled {
+    color: #ffca3a; /* Filled star color (yellow) */
+}
+
+.star-icon.hovered {
+   color: #ffda77; /* Lighter yellow on hover */
+   transform: scale(1.1);
+}
+
+.stars-container.disabled .star-icon:hover {
+    color: inherit; /* Prevent hover color change when disabled */
+    transform: none;
+}

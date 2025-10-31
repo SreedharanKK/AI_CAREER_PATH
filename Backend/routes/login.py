@@ -1,10 +1,16 @@
 from flask import Blueprint, request, jsonify, make_response
 from db_config import get_db_connection
 from werkzeug.security import check_password_hash
-import random, datetime, subprocess, json, jwt, threading
+import random, datetime, subprocess, json, jwt, threading, sys, os
 from config import SECRET_KEY
 from utils.skill_extractor import trigger_skill_extraction
 
+try:
+    # Assuming news_feed.py is in the same 'routes' folder or accessible
+    from .news_feed import clear_news_cache, news_feed_cache # Import the function and cache dict
+except ImportError as e:
+    print(f"⚠️ WARNING: Could not import clear_news_cache: {e}. Cache won't be cleared on logout.")
+    clear_news_cache = None
 
 login_bp = Blueprint("login", __name__)
     
@@ -114,7 +120,26 @@ def verify_otp():
 # Add at the end of login.py
 @login_bp.route("/logout", methods=["POST"])
 def logout():
+    user_id = None
+    token = request.cookies.get("token")
+    # --- Try to get user_id from token to clear cache ---
+    if token:
+        try:
+            # Decode token just to get user_id for cache clearing
+            data = jwt.decode(token, SECRET_KEY, algorithms=["HS256"], options={"verify_exp": False}) # Allow expired tokens for logout
+            user_id = data.get("user_id")
+        except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
+            print("Token invalid/expired during logout, cannot clear specific user cache.")
+            pass # Proceed with logout anyway
+
+    # --- Clear Cache if possible ---
+    if user_id and clear_news_cache:
+        clear_news_cache(user_id) # Call the imported function
+    elif user_id:
+        print("Logout: clear_news_cache function not available.")
+    # -----------------------------
+
+    # Clear cookie
     resp = make_response(jsonify({"message": "Successfully logged out"}))
-    # Setting the cookie with an expired date and max_age=0 effectively deletes it
-    resp.set_cookie("token", "", expires=0, max_age=0, httponly=True, path="/")
+    resp.set_cookie("token", "", expires=0, max_age=0, httponly=True, path="/", samesite='Lax')
     return resp, 200

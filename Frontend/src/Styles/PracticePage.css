@@ -1,0 +1,450 @@
+/* --- Base Styles --- */
+.practice-page-container {
+    position: relative; /* Context for canvas */
+    min-height: 100vh;
+    overflow-x: hidden; /* Prevent horizontal scroll */
+}
+
+.live-background-canvas {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    z-index: 1;
+    background: linear-gradient(-45deg, #0b021d, #1f0a40, #110624, #0b021d);
+    background-size: 400% 400%;
+    animation: gradientBG 25s ease infinite;
+}
+@keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+.practice-content-wrapper {
+    position: relative;
+    z-index: 2; /* Content above canvas */
+    max-width: 1000px; /* Max width for content */
+    margin: 0 auto; /* Center content */
+    padding: 4rem 2rem;
+    animation: fadeInPractice 0.8s ease-out;
+}
+@keyframes fadeInPractice { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+/* --- Header --- */
+.practice-header {
+    text-align: center;
+    margin-bottom: 3rem;
+    color: #fff;
+}
+.practice-header h1 {
+    font-size: 2.8rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    display: flex; /* Align icon and text */
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    background: linear-gradient(90deg, #9D4EDD, #C77DFF);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.practice-header .header-icon {
+    /* Adjust icon color if background clip affects it */
+     color: #C77DFF; /* Fallback color */
+     stroke-width: 1.5;
+     flex-shrink: 0;
+     margin-bottom: 5px; /* Align better with text */
+     /* Apply gradient stroke if possible/desired (more complex) */
+}
+
+.practice-header p {
+    font-size: 1.1rem;
+    color: #A0A0B0;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* --- Loading / Error / No Skills States --- */
+.loading-container-practice,
+.error-container-practice,
+.no-skills-message-practice {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 3rem 1rem;
+    margin-top: 2rem;
+    min-height: 200px;
+    background-color: rgba(11, 2, 29, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    text-align: center;
+    color: #A0A0B0;
+}
+
+.loading-container-practice.mini { /* Small version for history loading */
+    min-height: auto; padding: 1.5rem; flex-direction: row; gap: 0.75rem;
+}
+
+.no-skills-message-practice p {
+    margin-bottom: 1rem;
+    line-height: 1.6;
+}
+.error-message { /* Style for error text */
+    color: #ff6b6b;
+    font-weight: 500;
+    margin-bottom: 1rem;
+}
+
+/* Add spinner styles if not globally defined */
+.spinner {
+   width: 40px; height: 40px;
+   border: 4px solid rgba(255, 255, 255, 0.2);
+   border-top-color: #9d4edd;
+   border-radius: 50%;
+   animation: spin 1s linear infinite;
+   margin-bottom: 1rem;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner-sm {
+    display: inline-block; width: 16px; height: 16px;
+    border: 2px solid currentColor; border-top-color: transparent;
+    border-radius: 50%; animation: spin 0.8s linear infinite;
+    margin-right: 6px; vertical-align: middle;
+}
+/* --- Skills Grid --- */
+.skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); /* Responsive columns */
+    gap: 1.5rem; /* Space between buttons */
+    margin-bottom: 3rem; /* Space below grid */
+}
+
+.skill-button {
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #E0E0E0;
+    background-color: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.3s ease;
+    word-break: break-word; /* Prevent long skill names overflowing */
+}
+
+.skill-button:hover {
+    background-color: rgba(123, 44, 191, 0.4); /* Purple tint on hover */
+    border-color: #9d4edd;
+    transform: translateY(-3px);
+    box-shadow: 0 4px 15px rgba(157, 78, 221, 0.3);
+    color: #fff;
+}
+.skill-button:active {
+    transform: translateY(-1px); /* Slight press effect */
+}
+
+
+/* --- General Buttons --- */
+.practice-actions {
+    text-align: center; /* Center the button(s) */
+    margin-top: 2rem;
+}
+.practice-btn { /* Base style for action buttons */
+    padding: 12px 24px;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    min-width: 180px; /* Minimum width */
+}
+.practice-btn.secondary {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #E0E0E0;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+.practice-btn.secondary:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+.practice-btn:disabled { cursor: not-allowed; opacity: 0.5; }
+
+
+/* --- Modal Styling --- */
+.modal-overlay-practice {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(0, 0, 0, 0.75);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    animation: fadeInOverlay 0.3s ease;
+}
+@keyframes fadeInOverlay { from { opacity: 0; } to { opacity: 1; } }
+
+.modal-content-practice {
+    background-color: #1c0a3a; /* Dark modal background */
+    padding: 2.5rem;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    text-align: center;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    transform: scale(0.95);
+    opacity: 0;
+    animation: zoomInModal 0.4s 0.1s ease forwards;
+}
+@keyframes zoomInModal { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+.modal-content-practice h2 {
+    font-size: 1.3rem;
+    color: #A0A0B0;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+.selected-skill-name {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: #C77DFF; /* Highlight selected skill */
+    margin-bottom: 2.5rem;
+    word-break: break-word;
+}
+
+.difficulty-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem; /* More space between buttons */
+    margin-bottom: 2.5rem;
+}
+
+.difficulty-btn {
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 120px;
+    color: #fff;
+}
+.difficulty-btn.easy { background-color: #2a9d8f; } /* Teal */
+.difficulty-btn.medium { background-color: #e76f51; } /* Coral */
+.difficulty-btn.hard { background-color: #c9184a; } /* Crimson */
+
+.difficulty-btn:hover {
+    transform: translateY(-4px) scale(1.05); /* Grow and lift */
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+.difficulty-btn.easy:hover { background-color: #3ccebd; box-shadow: 0 6px 20px rgba(60, 206, 189, 0.4);}
+.difficulty-btn.medium:hover { background-color: #f4a261; box-shadow: 0 6px 20px rgba(244, 162, 97, 0.4); }
+.difficulty-btn.hard:hover { background-color: #ff4d6d; box-shadow: 0 6px 20px rgba(255, 77, 109, 0.4); }
+
+
+.modal-close-btn {
+    background-color: transparent;
+    color: #A0A0B0;
+    border: 1px solid #4a3470;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+.modal-close-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: #7a6c90;
+    color: #E0E0E0;
+}
+.history-list-container {
+    margin-top: 4rem; /* Space above the history section */
+    padding: 2rem;
+    background-color: rgba(11, 2, 29, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+.history-title {
+    font-size: 1.5rem;
+    color: #fff;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #4a3470;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.no-history-message {
+    font-style: italic;
+    color: #7a6c90;
+    text-align: center;
+    padding: 1rem 0;
+}
+.history-items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-height: 400px; /* Limit height and allow scroll */
+    overflow-y: auto;
+    padding-right: 10px; /* Space for scrollbar */
+    /* Custom scrollbar */
+    scrollbar-width: thin;
+    scrollbar-color: #4a3470 #1a0f30;
+}
+.history-items-list::-webkit-scrollbar { width: 6px; }
+.history-items-list::-webkit-scrollbar-track { background: #1a0f30; border-radius: 3px;}
+.history-items-list::-webkit-scrollbar-thumb { background-color: #4a3470; border-radius: 3px; }
+.history-items-list::-webkit-scrollbar-thumb:hover { background-color: #7b2cbf; }
+
+.history-item {
+    display: flex; /* Use flex for alignment */
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: left;
+    width: 100%;
+    color: #E0E0E0;
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+}
+.history-item:hover:not(:disabled) {
+    background-color: rgba(123, 44, 191, 0.2);
+    border-color: #9d4edd;
+}
+.history-item:disabled { cursor: not-allowed; opacity: 0.5; }
+
+.status-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    flex-shrink: 0; background-color: #777; /* Default grey */
+}
+.status-dot.correct { background-color: #8AFF8A; /* Green */ }
+.status-dot.incorrect { background-color: #ffca3a; /* Yellow/Orange */ }
+
+.history-item-skill { font-weight: 600; color: #fff; flex-grow: 1; }
+.history-item-status { font-style: italic; color: #A0A0B0; flex-shrink: 0; }
+.history-item-date { font-size: 0.9rem; color: #7a6c90; flex-shrink: 0; min-width: 160px; text-align: right; }
+
+/* --- *** NEW: History Detail Modal Styles *** --- */
+.modal-content-history {
+    max-width: 90vw; /* Much wider modal */
+    width: 1200px; /* Max width */
+    text-align: left;
+    padding: 2rem;
+    position: relative; /* For close button */
+}
+.modal-content-history h2 {
+    text-align: center; color: #C77DFF;
+    font-size: 1.8rem; margin-bottom: 0.25rem;
+}
+.history-timestamp {
+    text-align: center; color: #7a6c90;
+    font-size: 0.9rem; margin-bottom: 2rem;
+}
+.modal-close-btn-history {
+    position: absolute;
+    top: 1rem; right: 1rem;
+    background: transparent;
+    border: none;
+    color: #7a6c90;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+.modal-close-btn-history:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+.history-modal-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Two columns */
+    gap: 2rem;
+    max-height: 70vh; /* Limit height and allow scrolling */
+    overflow-y: auto;
+    padding: 1rem;
+    /* Custom scrollbar */
+    scrollbar-width: thin;
+    scrollbar-color: #4a3470 #1c0a3a;
+}
+.history-modal-grid::-webkit-scrollbar { width: 8px; }
+.history-modal-grid::-webkit-scrollbar-track { background: #1c0a3a; border-radius: 4px;}
+.history-modal-grid::-webkit-scrollbar-thumb { background-color: #4a3470; border-radius: 4px; }
+
+.history-modal-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-height: 0; /* Fix for flexbox overflow */
+}
+.history-modal-section h3 {
+    font-size: 1.3rem; color: #fff;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #4a3470;
+}
+.history-question-content {
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: 1rem;
+    border-radius: 8px;
+    flex-grow: 1; /* Allow question to fill space */
+    overflow-y: auto; /* Scroll question if it's long */
+}
+.history-question-content h4 { font-size: 1.1rem; color: #e0e0e0; margin-bottom: 0.5rem; }
+.history-question-content p { font-size: 0.95rem; color: #A0A0B0; line-height: 1.6; white-space: pre-wrap; }
+.history-question-content .examples-section { margin-top: 1rem; }
+.history-question-content .examples-section pre {
+    background-color: rgba(0, 0, 0, 0.3);
+    padding: 0.5rem; border-radius: 4px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.9rem; white-space: pre-wrap;
+    margin-top: 0.5rem;
+}
+.history-code-wrapper {
+    /* Wrapper for the read-only editor */
+    position: relative;
+    flex-shrink: 0; /* Don't shrink */
+}
+/* Re-use analysis styles from PracticeQuestionsPage.css (they are included there) */
+/* Ensure they are prefixed if needed, e.g., .modal-content-history .ai-analysis-section */
+.modal-content-history .ai-analysis-section { margin-top: 1.5rem; }
+.modal-content-history .ai-analysis-section h3 { font-size: 1.2rem; }
+.modal-content-history .analysis-chart-container { min-height: 250px; }
+.modal-content-history .analysis-block h4 { font-size: 0.9rem; }
+.modal-content-history .analysis-block p { font-size: 0.9rem; }
+@media (max-width: 992px) {
+    .history-modal-grid {
+        grid-template-columns: 1fr; /* Stack columns */
+        max-height: 75vh;
+    }
+}
+
+/* --- Responsive --- */
+@media (max-width: 768px) {
+    .practice-content-wrapper { padding: 3rem 1rem; }
+    .practice-header h1 { font-size: 2.4rem; }
+    .skills-grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; }
+    .skill-button { padding: 0.8rem 1rem; font-size: 0.9rem; }
+    .difficulty-buttons { flex-direction: column; gap: 1rem; }
+    .difficulty-btn { width: 100%; padding: 0.8rem 1rem; font-size: 1rem; }
+    .modal-content-practice { padding: 2rem 1.5rem; }
+    .selected-skill-name { font-size: 1.5rem; }
+    .history-list-container { padding: 1.5rem; }
+    .history-title { font-size: 1.3rem; }
+    .history-item { flex-wrap: wrap; gap: 0.5rem; padding: 0.75rem 1rem; } /* Allow wrapping */
+    .history-item-skill { flex-basis: 100%; font-size: 0.95rem; } /* Full width */
+    .history-item-status { flex-grow: 1; font-size: 0.9rem; }
+    .history-item-date { font-size: 0.85rem; min-width: auto; }
+    /* History modal adjustments */
+    .modal-content-history { padding: 1.5rem; }
+    .modal-content-history h2 { font-size: 1.5rem; }
+}

@@ -1,0 +1,382 @@
+[2025-10-26 21:22:02] --- Starting Roadmap Link Validation (Lock Acquired) ---
+[2025-10-26 21:22:02] Fetching roadmaps from database...
+[2025-10-26 21:22:02] Found 5 roadmaps.
+[2025-10-26 21:22:02] Extracted 153 unique study links.
+[2025-10-26 21:22:02] Starting URL checks...
+[2025-10-26 21:22:02]   Checking link 1/153: https://developer.android.com/guide/components/fundamentals
+[2025-10-26 21:22:04]   Checking link 2/153: https://www.youtube.com/watch?v=1Rs2ND1ryYc
+[2025-10-26 21:22:07]   Checking link 3/153: https://www.youtube.com/watch?v=VQutGk9ur6g
+[2025-10-26 21:22:09]   Checking link 4/153: https://kotlinlang.org/docs/flow.html
+[2025-10-26 21:22:11]   Checking link 5/153: https://owasp.org/www-project-secure-coding-practices-quick-reference-guide/dsp_general_guideline.html
+[2025-10-26 21:22:13]     INVALID Status: 404 for URL: https://owasp.org/www-project-secure-coding-practices-quick-reference-guide/dsp_general_guideline.html
+[2025-10-26 21:22:13]     INVALID link found: https://owasp.org/www-project-secure-coding-practices-quick-reference-guide/dsp_general_guideline.html in Roadmap ID 6, Stage 2, Step 7
+[2025-10-26 21:22:13]       Logged invalid link instance (ID: 1).
+[2025-10-26 21:22:15]     AI_REPLACE: Asking AI for replacement for: https://owasp.org/www-project-secure-coding-practices-quick-reference-guide/dsp_general_guideline.html (Step: Secure Coding Practices)
+[2025-10-26 21:22:40]     AI_REPLACE: AI suggested: https://owasp.github.io/www-project-secure-coding-practices-quick-reference-guide/v2/
+[2025-10-26 21:22:40]       Attempting to update roadmap JSON for ID 6 with new URL: https://owasp.github.io/www-project-secure-coding-practices-quick-reference-guide/v2/
+[2025-10-26 21:22:40]         SUCCESS: Replaced link in Roadmap ID 6, Stage 2, Step 7.
+[2025-10-26 21:22:40]   Checking link 6/153: https://www.youtube.com/watch?v=kUMe1FH4CHE
+[2025-10-26 21:22:44]   Checking link 7/153: https://www.comptia.org/certifications/security
+[2025-10-26 21:22:48]   Checking link 8/153: https://css-tricks.com/snippets/css/complete-guide-grid/
+[2025-10-26 21:22:51]   Checking link 9/153: https://developer.android.com/topic/libraries/architecture/workmanager
+[2025-10-26 21:22:59]   Checking link 10/153: https://developer.android.com/jetpack/compose/testing
+[2025-10-26 21:23:01]   Checking link 11/153: https://www.youtube.com/watch?v=FduLSGv8VbA
+[2025-10-26 21:23:03]   Checking link 12/153: https://cheatsheetseries.owasp.org/cheatsheets/Docker_Security_Cheat_Sheet.html
+[2025-10-26 21:23:08]   Checking link 13/153: https://www.youtube.com/watch?v=pnh-jCvC_sA
+[2025-10-26 21:23:10]   Checking link 14/153: https://developer.android.com/distribute/best-practices/launch/launch-checklist
+[2025-10-26 21:23:13]   Checking link 15/153: https://web.dev/vitals/
+[2025-10-26 21:23:16]   Checking link 16/153: https://developer.mozilla.org/en-US/docs/Web/CSS
+[2025-10-26 21:23:18]   Checking link 17/153: https://m3.material.io/
+[2025-10-26 21:23:28]     TIMEOUT Error for URL: https://m3.material.io/
+[2025-10-26 21:23:28]     INVALID link found: https://m3.material.io/ in Roadmap ID 4, Stage 3, Step 1
+[2025-10-26 21:23:28]       Logged invalid link instance (ID: 2).
+[2025-10-26 21:23:30]     AI_REPLACE: Asking AI for replacement for: https://m3.material.io/ (Step: Master Material Design 3)
+[2025-10-26 21:23:48]     AI_REPLACE: AI suggested: https://m3.material.io/develop/android/get-started
+[2025-10-26 21:23:48]       Attempting to update roadmap JSON for ID 4 with new URL: https://m3.material.io/develop/android/get-started
+[2025-10-26 21:23:48]         SUCCESS: Replaced link in Roadmap ID 4, Stage 3, Step 1.
+[2025-10-26 21:23:49]   Checking link 18/153: https://www.youtube.com/watch?v=r8Dg0cMYa_o
+[2025-10-26 21:23:51]   Checking link 19/153: https://www.freecodecamp.org/news/how-to-build-a-movie-search-app-using-react-hooks/
+[2025-10-26 21:23:53]     INVALID Status: 404 for URL: https://www.freecodecamp.org/news/how-to-build-a-movie-search-app-using-react-hooks/
+[2025-10-26 21:23:53]     INVALID link found: https://www.freecodecamp.org/news/how-to-build-a-movie-search-app-using-react-hooks/ in Roadmap ID 2, Stage 3, Step 5
+[2025-10-26 21:23:53]       Logged invalid link instance (ID: 3).
+[2025-10-26 21:23:55]     AI_REPLACE: Asking AI for replacement for: https://www.freecodecamp.org/news/how-to-build-a-movie-search-app-using-react-hooks/ (Step: Project: Build a Movie Database App)
+[2025-10-26 21:24:16]     AI_REPLACE: AI suggested: https://www.freecodecamp.org/news/react-movie-app-tutorial/
+[2025-10-26 21:24:16]       Attempting to update roadmap JSON for ID 2 with new URL: https://www.freecodecamp.org/news/react-movie-app-tutorial/
+[2025-10-26 21:24:16]         SUCCESS: Replaced link in Roadmap ID 2, Stage 3, Step 5.
+[2025-10-26 21:24:17]   Checking link 20/153: https://vitejs.dev/guide/
+[2025-10-26 21:24:20]   Checking link 21/153: https://learn.microsoft.com/en-us/windows-server/administration/get-started-with-windows-server
+[2025-10-26 21:24:21]     INVALID Status: 404 for URL: https://learn.microsoft.com/en-us/windows-server/administration/get-started-with-windows-server
+[2025-10-26 21:24:21]     INVALID link found: https://learn.microsoft.com/en-us/windows-server/administration/get-started-with-windows-server in Roadmap ID 3, Stage 0, Step 2
+[2025-10-26 21:24:21]       Logged invalid link instance (ID: 4).
+[2025-10-26 21:24:23]     AI_REPLACE: Asking AI for replacement for: https://learn.microsoft.com/en-us/windows-server/administration/get-started-with-windows-server (Step: Windows Server Administration Basics)
+[2025-10-26 21:24:40]     AI_REPLACE: AI suggested: https://learn.microsoft.com/en-us/training/paths/windows-server-administration/
+[2025-10-26 21:24:40]       Attempting to update roadmap JSON for ID 3 with new URL: https://learn.microsoft.com/en-us/training/paths/windows-server-administration/
+[2025-10-26 21:24:40]         SUCCESS: Replaced link in Roadmap ID 3, Stage 0, Step 2.
+[2025-10-26 21:24:41]   Checking link 22/153: https://www.youtube.com/watch?v=ofme2o29ngU
+[2025-10-26 21:24:43]   Checking link 23/153: https://render.com/docs/deploy-create-react-app
+[2025-10-26 21:24:46]   Checking link 24/153: https://www.youtube.com/watch?v=H9n16_T3yK4
+[2025-10-26 21:24:47]   Checking link 25/153: https://www.youtube.com/watch?v=SccSCuHhOw0
+[2025-10-26 21:24:50]   Checking link 26/153: https://www.codecademy.com/learn/learn-the-command-line
+[2025-10-26 21:24:52]   Checking link 27/153: https://reactrouter.com/en/main/start/tutorial
+[2025-10-26 21:24:55]   Checking link 28/153: https://www.typescriptlang.org/docs/handbook/typescript-for-javascript-programmers.html
+[2025-10-26 21:24:56]     INVALID Status: 404 for URL: https://www.typescriptlang.org/docs/handbook/typescript-for-javascript-programmers.html
+[2025-10-26 21:24:56]     INVALID link found: https://www.typescriptlang.org/docs/handbook/typescript-for-javascript-programmers.html in Roadmap ID 2, Stage 5, Step 0
+[2025-10-26 21:24:56]       Logged invalid link instance (ID: 5).
+[2025-10-26 21:24:58]     AI_REPLACE: Asking AI for replacement for: https://www.typescriptlang.org/docs/handbook/typescript-for-javascript-programmers.html (Step: TypeScript)
+[2025-10-26 21:25:34]     AI_REPLACE: AI suggested: https://www.typescriptlang.org/docs/handbook/typescript-in-5-minutes.html
+[2025-10-26 21:25:34]       Attempting to update roadmap JSON for ID 2 with new URL: https://www.typescriptlang.org/docs/handbook/typescript-in-5-minutes.html
+[2025-10-26 21:25:34]         SUCCESS: Replaced link in Roadmap ID 2, Stage 5, Step 0.
+[2025-10-26 21:25:34]   Checking link 29/153: https://www.youtube.com/watch?v=IPvYjXCsTg8
+[2025-10-26 21:25:38]   Checking link 30/153: https://nmap.org/book/man-briefoptions.html
+[2025-10-26 21:25:42]   Checking link 31/153: https://www.youtube.com/watch?v=F_7SfcAYa-g
+[2025-10-26 21:25:44]   Checking link 32/153: https://www.youtube.com/watch?v=V_Kr9OSfDeU
+[2025-10-26 21:25:46]   Checking link 33/153: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules
+[2025-10-26 21:25:48]   Checking link 34/153: https://www.youtube.com/watch?v=HXV3zeQKqGY
+[2025-10-26 21:25:50]   Checking link 35/153: https://www.youtube.com/watch?v=sWbUDq4S6Y8
+[2025-10-26 21:25:55]   Checking link 36/153: https://testing-library.com/docs/react-testing-library/intro/
+[2025-10-26 21:25:57]   Checking link 37/153: https://developer.mozilla.org/en-US/docs/Learn/CSS/Building_blocks/The_box_model
+[2025-10-26 21:25:59]   Checking link 38/153: https://developer.mozilla.org/en-US/docs/Web/HTML/Semantic_HTML
+[2025-10-26 21:26:01]     INVALID Status: 404 for URL: https://developer.mozilla.org/en-US/docs/Web/HTML/Semantic_HTML
+[2025-10-26 21:26:01]     INVALID link found: https://developer.mozilla.org/en-US/docs/Web/HTML/Semantic_HTML in Roadmap ID 2, Stage 0, Step 2
+[2025-10-26 21:26:01]       Logged invalid link instance (ID: 6).
+[2025-10-26 21:26:03]     AI_REPLACE: Asking AI for replacement for: https://developer.mozilla.org/en-US/docs/Web/HTML/Semantic_HTML (Step: Semantic HTML)
+[2025-10-26 21:26:30]     AI_REPLACE: AI suggested: https://www.freecodecamp.org/news/semantic-html5-elements/
+[2025-10-26 21:26:30]       Attempting to update roadmap JSON for ID 2 with new URL: https://www.freecodecamp.org/news/semantic-html5-elements/
+[2025-10-26 21:26:30]         SUCCESS: Replaced link in Roadmap ID 2, Stage 0, Step 2.
+[2025-10-26 21:26:30]   Checking link 39/153: https://ctftime.org/
+[2025-10-26 21:26:34]   Checking link 40/153: https://www.youtube.com/watch?v=g8iWf4uOM58
+[2025-10-26 21:26:35]   Checking link 41/153: https://android-developers.googleblog.com/
+[2025-10-26 21:26:37]   Checking link 42/153: https://www.youtube.com/watch?v=1p35NAHY_M8
+[2025-10-26 21:26:39]   Checking link 43/153: https://kubernetes.io/docs/concepts/security/
+[2025-10-26 21:26:41]   Checking link 44/153: https://www.youtube.com/watch?v=eL5g_c_8RNc
+[2025-10-26 21:26:42]   Checking link 45/153: https://www.youtube.com/watch?v=PkZNo7MFNFg
+[2025-10-26 21:26:45]   Checking link 46/153: https://www.freecodecamp.org/learn/2022/responsive-web-design/
+[2025-10-26 21:26:47]   Checking link 47/153: https://css-tricks.com/snippets/css/a-guide-to-flexbox/
+[2025-10-26 21:26:50]   Checking link 48/153: https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-61r2.pdf
+[2025-10-26 21:26:52]     INVALID Status: 404 for URL: https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-61r2.pdf
+[2025-10-26 21:26:52]     INVALID link found: https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-61r2.pdf in Roadmap ID 3, Stage 2, Step 4
+[2025-10-26 21:26:52]       Logged invalid link instance (ID: 7).
+[2025-10-26 21:26:54]     AI_REPLACE: Asking AI for replacement for: https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-61r2.pdf (Step: Incident Response Frameworks (NIST))
+[2025-10-26 21:27:17]     AI_REPLACE: AI suggested: https://csrc.nist.gov/publications/detail/sp/800-61/rev-2/final
+[2025-10-26 21:27:17]       Attempting to update roadmap JSON for ID 3 with new URL: https://csrc.nist.gov/publications/detail/sp/800-61/rev-2/final
+[2025-10-26 21:27:17]         SUCCESS: Replaced link in Roadmap ID 3, Stage 2, Step 4.
+[2025-10-26 21:27:18]   Checking link 49/153: https://developer.android.com/guide/components/activities/activity-lifecycle
+[2025-10-26 21:27:21]   Checking link 50/153: https://developer.android.com/topic/architecture
+[2025-10-26 21:27:23]   Checking link 51/153: https://play.kotlinlang.org/koans/overview
+[2025-10-26 21:27:25]   Checking link 52/153: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
+[2025-10-26 21:27:27]   Checking link 53/153: https://developer.android.com/topic/security/best-practices
+[2025-10-26 21:27:30]   Checking link 54/153: https://docs.github.com/en/actions/learn-github-actions/understanding-github-actions
+[2025-10-26 21:27:33]   Checking link 55/153: https://www.w3.org/WAI/fundamentals/accessibility-intro/
+[2025-10-26 21:27:36]   Checking link 56/153: https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model/Introduction
+[2025-10-26 21:27:37]   Checking link 57/153: https://www.youtube.com/watch?v=N8Ydb3b_s-o
+[2025-10-26 21:27:39]   Checking link 58/153: https://www.youtube.com/watch?v=f2EqECiTBL8
+[2025-10-26 21:27:42]   Checking link 59/153: https://react.dev/reference/react/useState
+[2025-10-26 21:27:43]   Checking link 60/153: https://portswigger.net/web-security
+[2025-10-26 21:27:45]     INVALID Status: 404 for URL: https://portswigger.net/web-security
+[2025-10-26 21:27:45]     INVALID link found: https://portswigger.net/web-security in Roadmap ID 3, Stage 3, Step 3
+[2025-10-26 21:27:45]       Logged invalid link instance (ID: 8).
+[2025-10-26 21:27:47]     AI_REPLACE: Asking AI for replacement for: https://portswigger.net/web-security (Step: Penetration Testing Fundamentals)
+[2025-10-26 21:28:09]     AI_REPLACE: AI suggested: https://portswigger.net/web-security
+[2025-10-26 21:28:09]       Attempting to update roadmap JSON for ID 3 with new URL: https://portswigger.net/web-security
+[2025-10-26 21:28:09]         SUCCESS: Replaced link in Roadmap ID 3, Stage 3, Step 3.
+[2025-10-26 21:28:09]     INVALID link found: https://portswigger.net/web-security in Roadmap ID 6, Stage 2, Step 2
+[2025-10-26 21:28:09]       Logged invalid link instance (ID: 9).
+[2025-10-26 21:28:11]     AI_REPLACE: Asking AI for replacement for: https://portswigger.net/web-security (Step: Web App Pentesting with Burp Suite)
+[2025-10-26 21:28:27]     AI_REPLACE: AI suggested: https://portswigger.net/web-security/
+[2025-10-26 21:28:27]       Attempting to update roadmap JSON for ID 6 with new URL: https://portswigger.net/web-security/
+[2025-10-26 21:28:27]         SUCCESS: Replaced link in Roadmap ID 6, Stage 2, Step 2.
+[2025-10-26 21:28:27]   Checking link 61/153: https://developer.android.com/guide/topics/large-screens/overview
+[2025-10-26 21:28:31]     INVALID Status: 404 for URL: https://developer.android.com/guide/topics/large-screens/overview
+[2025-10-26 21:28:31]     INVALID link found: https://developer.android.com/guide/topics/large-screens/overview in Roadmap ID 4, Stage 4, Step 0
+[2025-10-26 21:28:31]       Logged invalid link instance (ID: 10).
+[2025-10-26 21:28:33]     AI_REPLACE: Asking AI for replacement for: https://developer.android.com/guide/topics/large-screens/overview (Step: Support for Large Screens)
+[2025-10-26 21:28:49]     AI_REPLACE: AI suggested: https://developer.android.com/guide/topics/large-screens
+[2025-10-26 21:28:49]       Attempting to update roadmap JSON for ID 4 with new URL: https://developer.android.com/guide/topics/large-screens
+[2025-10-26 21:28:49]         SUCCESS: Replaced link in Roadmap ID 4, Stage 4, Step 0.
+[2025-10-26 21:28:49]   Checking link 62/153: https://www.youtube.com/watch?v=3e1GHCA3v0s
+[2025-10-26 21:28:51]   Checking link 63/153: https://www.youtube.com/watch?v=3c-iBn73dDE
+[2025-10-26 21:28:54]   Checking link 64/153: https://www.freecodecamp.org/news/how-to-contribute-to-open-source-projects-beginners-guide/
+[2025-10-26 21:28:56]   Checking link 65/153: https://graphql.org/learn/
+[2025-10-26 21:28:59]   Checking link 66/153: https://www.youtube.com/watch?v=SydnKbGcAwA
+[2025-10-26 21:29:02]   Checking link 67/153: https://www.cisa.gov/news-events/news/incident-handling-101
+[2025-10-26 21:29:14]     TIMEOUT Error for URL: https://www.cisa.gov/news-events/news/incident-handling-101
+[2025-10-26 21:29:14]     INVALID link found: https://www.cisa.gov/news-events/news/incident-handling-101 in Roadmap ID 6, Stage 3, Step 4
+[2025-10-26 21:29:14]       Logged invalid link instance (ID: 11).
+[2025-10-26 21:29:16]     AI_REPLACE: Asking AI for replacement for: https://www.cisa.gov/news-events/news/incident-handling-101 (Step: Incident Response)
+[2025-10-26 21:29:37]     AI_REPLACE: AI suggested: https://www.cisa.gov/resources-tools/resources/cybersecurity-incident-vulnerability-response-playbooks
+[2025-10-26 21:29:37]       Attempting to update roadmap JSON for ID 6 with new URL: https://www.cisa.gov/resources-tools/resources/cybersecurity-incident-vulnerability-response-playbooks
+[2025-10-26 21:29:37]         SUCCESS: Replaced link in Roadmap ID 6, Stage 3, Step 4.
+[2025-10-26 21:29:38]   Checking link 68/153: https://www.nist.gov/cyberframework
+[2025-10-26 21:29:40]   Checking link 69/153: https://www.youtube.com/watch?v=7_LPdttKXPc
+[2025-10-26 21:29:43]   Checking link 70/153: https://www.reddit.com/r/cybersecurity/
+[2025-10-26 21:29:45]   Checking link 71/153: https://developer.mozilla.org/en-US/docs/Web/HTTP/Overview
+[2025-10-26 21:29:48]   Checking link 72/153: https://www.youtube.com/watch?v=T_mBCpm4I3M
+[2025-10-26 21:29:50]   Checking link 73/153: https://www.youtube.com/watch?v=_uQrJ0TkZlc
+[2025-10-26 21:29:52]   Checking link 74/153: https://www.youtube.com/watch?v=rbasThWVb-c
+[2025-10-26 21:29:54]   Checking link 75/153: https://www.typescriptlang.org/docs/handbook/intro.html
+[2025-10-26 21:29:56]   Checking link 76/153: https://www.youtube.com/watch?v=cuEtnrL9-H0
+[2025-10-26 21:29:58]   Checking link 77/153: https://www.youtube.com/watch?v=mbsmsi7l3r4
+[2025-10-26 21:30:01]   Checking link 78/153: https://www.youtube.com/watch?v=RGOj5yH7evk
+[2025-10-26 21:30:03]   Checking link 79/153: https://developer.android.com/training/dependency-injection
+[2025-10-26 21:30:05]   Checking link 80/153: https://www.youtube.com/watch?v=lb1Dw0elw0Q
+[2025-10-26 21:30:07]   Checking link 81/153: https://developer.android.com/courses/pathways/compose
+[2025-10-26 21:30:11]   Checking link 82/153: https://www.freecodecamp.org/learn/javascript-algorithms-and-data-structures/basic-javascript/
+[2025-10-26 21:30:13]   Checking link 83/153: https://kotlinlang.org/docs/coroutines-guide.html
+[2025-10-26 21:30:16]   Checking link 84/153: https://developer.android.com/courses/pathways/android-wear-os
+[2025-10-26 21:30:17]     INVALID Status: 404 for URL: https://developer.android.com/courses/pathways/android-wear-os
+[2025-10-26 21:30:17]     INVALID link found: https://developer.android.com/courses/pathways/android-wear-os in Roadmap ID 4, Stage 4, Step 1
+[2025-10-26 21:30:17]       Logged invalid link instance (ID: 12).
+[2025-10-26 21:30:19]     AI_REPLACE: Asking AI for replacement for: https://developer.android.com/courses/pathways/android-wear-os (Step: Explore Wear OS Development)
+[2025-10-26 21:30:38]     AI_REPLACE: AI suggested: https://developer.android.com/wear/os/get-started/overview
+[2025-10-26 21:30:38]       Attempting to update roadmap JSON for ID 4 with new URL: https://developer.android.com/wear/os/get-started/overview
+[2025-10-26 21:30:38]         SUCCESS: Replaced link in Roadmap ID 4, Stage 4, Step 1.
+[2025-10-26 21:30:38]   Checking link 85/153: https://www.youtube.com/watch?v=usmI_42BeqU
+[2025-10-26 21:30:41]   Checking link 86/153: https://www.redhat.com/en/topics/api/what-is-a-rest-api
+[2025-10-26 21:30:43]   Checking link 87/153: https://www.hackerone.com/hackers
+[2025-10-26 21:30:45]   Checking link 88/153: https://www.offensive-security.com/metasploit-unleashed/
+[2025-10-26 21:30:52]   Checking link 89/153: https://developer.android.com/jetpack/compose/animation
+[2025-10-26 21:30:55]   Checking link 90/153: https://www.professormesser.com/security-plus/sy0-601/sy0-601-video/sy0-601-comptia-security-plus-course/
+[2025-10-26 21:31:00]   Checking link 91/153: https://developer.mozilla.org/en-US/docs/Learn/Common_questions/How_does_the_Internet_work
+[2025-10-26 21:31:02]   Checking link 92/153: https://developer.android.com/jetpack/compose/state
+[2025-10-26 21:31:05]   Checking link 93/153: https://www.youtube.com/watch?v=h_Fz0P50TMA
+[2025-10-26 21:31:07]   Checking link 94/153: https://tryhackme.com/path/outline/jr-penetration-tester
+[2025-10-26 21:31:10]   Checking link 95/153: https://www.youtube.com/watch?v=ZS_kXvOeQ5Y
+[2025-10-26 21:31:12]   Checking link 96/153: https://www.freecodecamp.org/news/what-are-environment-variables-and-how-to-use-them/
+[2025-10-26 21:31:14]     INVALID Status: 404 for URL: https://www.freecodecamp.org/news/what-are-environment-variables-and-how-to-use-them/
+[2025-10-26 21:31:14]     INVALID link found: https://www.freecodecamp.org/news/what-are-environment-variables-and-how-to-use-them/ in Roadmap ID 5, Stage 4, Step 4
+[2025-10-26 21:31:14]       Logged invalid link instance (ID: 13).
+[2025-10-26 21:31:16]     AI_REPLACE: Asking AI for replacement for: https://www.freecodecamp.org/news/what-are-environment-variables-and-how-to-use-them/ (Step: Environment Variables)
+[2025-10-26 21:31:35]     AI_REPLACE: AI suggested: https://www.freecodecamp.org/news/how-to-use-environment-variables/
+[2025-10-26 21:31:35]       Attempting to update roadmap JSON for ID 5 with new URL: https://www.freecodecamp.org/news/how-to-use-environment-variables/
+[2025-10-26 21:31:35]         SUCCESS: Replaced link in Roadmap ID 5, Stage 4, Step 4.
+[2025-10-26 21:31:36]   Checking link 97/153: https://owasp.org/contribute/
+[2025-10-26 21:31:39]     INVALID Status: 404 for URL: https://owasp.org/contribute/
+[2025-10-26 21:31:39]     INVALID link found: https://owasp.org/contribute/ in Roadmap ID 6, Stage 4, Step 4
+[2025-10-26 21:31:39]       Logged invalid link instance (ID: 14).
+[2025-10-26 21:31:41]     AI_REPLACE: Asking AI for replacement for: https://owasp.org/contribute/ (Step: Contribute to Open Source Security)
+[2025-10-26 21:31:57]     AI_REPLACE: AI suggested: https://owasp.org/get-involved/
+[2025-10-26 21:31:57]       Attempting to update roadmap JSON for ID 6 with new URL: https://owasp.org/get-involved/
+[2025-10-26 21:31:57]         SUCCESS: Replaced link in Roadmap ID 6, Stage 4, Step 4.
+[2025-10-26 21:31:58]   Checking link 98/153: https://www.digitalocean.com/community/tutorials/what-is-nginx
+[2025-10-26 21:32:00]   Checking link 99/153: https://developer.android.com/tv
+[2025-10-26 21:32:02]   Checking link 100/153: https://www.prisma.io/docs/getting-started
+[2025-10-26 21:32:05]   Checking link 101/153: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Using_promises
+[2025-10-26 21:32:07]   Checking link 102/153: https://www.youtube.com/watch?v=SS-9y0H3Si8
+[2025-10-26 21:32:10]   Checking link 103/153: https://sqlbolt.com/
+[2025-10-26 21:32:13]   Checking link 104/153: https://www.youtube.com/watch?v=dFgzHOX84xQ
+[2025-10-26 21:32:16]   Checking link 105/153: https://www.comptia.org/content/articles/your-next-move-security-engineer
+[2025-10-26 21:32:18]     INVALID Status: 404 for URL: https://www.comptia.org/content/articles/your-next-move-security-engineer
+[2025-10-26 21:32:18]     INVALID link found: https://www.comptia.org/content/articles/your-next-move-security-engineer in Roadmap ID 6, Stage 4, Step 0
+[2025-10-26 21:32:18]       Logged invalid link instance (ID: 15).
+[2025-10-26 21:32:20]     AI_REPLACE: Asking AI for replacement for: https://www.comptia.org/content/articles/your-next-move-security-engineer (Step: Choose a Specialization)
+[2025-10-26 21:32:42]     AI_REPLACE: AI suggested: https://www.coursera.org/articles/cybersecurity-specializations
+[2025-10-26 21:32:42]       Attempting to update roadmap JSON for ID 6 with new URL: https://www.coursera.org/articles/cybersecurity-specializations
+[2025-10-26 21:32:42]         SUCCESS: Replaced link in Roadmap ID 6, Stage 4, Step 0.
+[2025-10-26 21:32:42]   Checking link 106/153: https://www.youtube.com/watch?v=1h4s_SA4G7c
+[2025-10-26 21:32:44]   Checking link 107/153: https://developer.chrome.com/docs/devtools/
+[2025-10-26 21:32:47]   Checking link 108/153: https://www.youtube.com/watch?v=IPvYjXCs-y8
+[2025-10-26 21:32:49]   Checking link 109/153: https://developer.android.com/studio/install
+[2025-10-26 21:32:51]   Checking link 110/153: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-android-with-gradle
+[2025-10-26 21:32:52]     INVALID Status: 404 for URL: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-android-with-gradle
+[2025-10-26 21:32:52]     INVALID link found: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-android-with-gradle in Roadmap ID 4, Stage 3, Step 5
+[2025-10-26 21:32:52]       Logged invalid link instance (ID: 16).
+[2025-10-26 21:32:54]     AI_REPLACE: Asking AI for replacement for: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-android-with-gradle (Step: CI/CD with GitHub Actions)
+[2025-10-26 21:33:12]     AI_REPLACE: AI suggested: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-gradle
+[2025-10-26 21:33:12]       Attempting to update roadmap JSON for ID 4 with new URL: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-gradle
+[2025-10-26 21:33:12]         SUCCESS: Replaced link in Roadmap ID 4, Stage 3, Step 5.
+[2025-10-26 21:33:13]   Checking link 111/153: https://www.apollographql.com/docs/react/
+[2025-10-26 21:33:17]   Checking link 112/153: https://www.youtube.com/watch?v=8Y0-GgVknv0
+[2025-10-26 21:33:19]   Checking link 113/153: https://www.youtube.com/watch?v=8mAITcNt710
+[2025-10-26 21:33:21]   Checking link 114/153: https://docs.npmjs.com/about-npm
+[2025-10-26 21:33:23]   Checking link 115/153: https://developer.android.com/codelabs/android-room-with-a-view-kotlin
+[2025-10-26 21:33:25]   Checking link 116/153: https://developer.mozilla.org/en-US/docs/Web/CSS/Using_CSS_custom_properties
+[2025-10-26 21:33:28]   Checking link 117/153: https://csrc.nist.gov/projects/risk-management/about-rmf
+[2025-10-26 21:33:35]   Checking link 118/153: https://react.dev/learn
+[2025-10-26 21:33:37]   Checking link 119/153: https://www.freecodecamp.org/news/how-to-build-a-weather-app-in-javascript/
+[2025-10-26 21:33:40]     INVALID Status: 404 for URL: https://www.freecodecamp.org/news/how-to-build-a-weather-app-in-javascript/
+[2025-10-26 21:33:40]     INVALID link found: https://www.freecodecamp.org/news/how-to-build-a-weather-app-in-javascript/ in Roadmap ID 2, Stage 2, Step 5
+[2025-10-26 21:33:40]       Logged invalid link instance (ID: 17).
+[2025-10-26 21:33:42]     AI_REPLACE: Asking AI for replacement for: https://www.freecodecamp.org/news/how-to-build-a-weather-app-in-javascript/ (Step: Project: Build a Weather App)
+[2025-10-26 21:33:58]     AI_REPLACE: AI suggested: https://www.freecodecamp.org/news/build-a-weather-app-with-javascript/
+[2025-10-26 21:33:58]       Attempting to update roadmap JSON for ID 2 with new URL: https://www.freecodecamp.org/news/build-a-weather-app-with-javascript/
+[2025-10-26 21:33:58]         SUCCESS: Replaced link in Roadmap ID 2, Stage 2, Step 5.
+[2025-10-26 21:33:58]   Checking link 120/153: https://developer.android.com/topic/modularization
+[2025-10-26 21:34:00]   Checking link 121/153: https://web.dev/progressive-web-apps/
+[2025-10-26 21:34:03]   Checking link 122/153: https://www.crowdstrike.com/cybersecurity-101/endpoint-security/endpoint-detection-and-response-edr/
+[2025-10-26 21:34:05]   Checking link 123/153: https://www.youtube.com/watch?v=uS3CSj2_L6Q
+[2025-10-26 21:34:07]   Checking link 124/153: https://www.youtube.com/watch?v=rjiSpmC_i3U
+[2025-10-26 21:34:09]   Checking link 125/153: https://cssgrid.io/
+[2025-10-26 21:34:11]   Checking link 126/153: https://www.youtube.com/watch?v=qw--VYLpxG4
+[2025-10-26 21:34:17]   Checking link 127/153: https://learn.microsoft.com/en-us/azure/security/develop/threat-modeling-tool-stride-categories
+[2025-10-26 21:34:19]     INVALID Status: 404 for URL: https://learn.microsoft.com/en-us/azure/security/develop/threat-modeling-tool-stride-categories
+[2025-10-26 21:34:19]     INVALID link found: https://learn.microsoft.com/en-us/azure/security/develop/threat-modeling-tool-stride-categories in Roadmap ID 6, Stage 1, Step 3
+[2025-10-26 21:34:19]       Logged invalid link instance (ID: 18).
+[2025-10-26 21:34:21]     AI_REPLACE: Asking AI for replacement for: https://learn.microsoft.com/en-us/azure/security/develop/threat-modeling-tool-stride-categories (Step: Threat Modeling (STRIDE))
+[2025-10-26 21:34:42]     AI_REPLACE: AI suggested: https://learn.microsoft.com/en-us/training/modules/tm-create-a-threat-model-using-stride/
+[2025-10-26 21:34:42]       Attempting to update roadmap JSON for ID 6 with new URL: https://learn.microsoft.com/en-us/training/modules/tm-create-a-threat-model-using-stride/
+[2025-10-26 21:34:42]         SUCCESS: Replaced link in Roadmap ID 6, Stage 1, Step 3.
+[2025-10-26 21:34:43]   Checking link 128/153: https://explore.skillbuilder.aws/learn/course/external/view/elearning/134/aws-security-fundamentals-second-edition
+[2025-10-26 21:34:48]   Checking link 129/153: https://www.comptia.org/blog/the-cia-triad
+[2025-10-26 21:34:50]     INVALID Status: 404 for URL: https://www.comptia.org/blog/the-cia-triad
+[2025-10-26 21:34:50]     INVALID link found: https://www.comptia.org/blog/the-cia-triad in Roadmap ID 6, Stage 1, Step 0
+[2025-10-26 21:34:50]       Logged invalid link instance (ID: 19).
+[2025-10-26 21:34:52]     AI_REPLACE: Asking AI for replacement for: https://www.comptia.org/blog/the-cia-triad (Step: The CIA Triad)
+[2025-10-26 21:35:09]     AI_REPLACE: AI suggested: https://www.comptia.org/content/articles/what-is-the-cia-triad
+[2025-10-26 21:35:09]       Attempting to update roadmap JSON for ID 6 with new URL: https://www.comptia.org/content/articles/what-is-the-cia-triad
+[2025-10-26 21:35:09]         SUCCESS: Replaced link in Roadmap ID 6, Stage 1, Step 0.
+[2025-10-26 21:35:10]   Checking link 130/153: https://www.okta.com/identity-101/authentication-vs-authorization/
+[2025-10-26 21:35:10]     Request Error (ConnectionError) for URL: https://www.okta.com/identity-101/authentication-vs-authorization/ - HTTPSConnectionPool(host='www.okta.com', port=443): Max retries exceeded with url: /identity-101/authentication-vs-authorization/ (Caused by NameResolutionError("<urllib3.connection.HTTPSConnection object at 0x000001830CFD3890>: Failed to resolve 'www.okta.com' ([Errno 11001] getaddrinfo failed)"))
+[2025-10-26 21:35:10]     INVALID link found: https://www.okta.com/identity-101/authentication-vs-authorization/ in Roadmap ID 5, Stage 2, Step 3
+[2025-10-26 21:35:10]       Logged invalid link instance (ID: 20).
+[2025-10-26 21:35:12]     AI_REPLACE: Asking AI for replacement for: https://www.okta.com/identity-101/authentication-vs-authorization/ (Step: Authentication vs. Authorization)
+[2025-10-26 21:35:33]     AI_REPLACE: AI suggested: https://www.okta.com/identity-101/authn-vs-authz/
+[2025-10-26 21:35:33]       Attempting to update roadmap JSON for ID 5 with new URL: https://www.okta.com/identity-101/authn-vs-authz/
+[2025-10-26 21:35:33]         SUCCESS: Replaced link in Roadmap ID 5, Stage 2, Step 3.
+[2025-10-26 21:35:33]     INVALID link found: https://www.okta.com/identity-101/authentication-vs-authorization/ in Roadmap ID 6, Stage 1, Step 2
+[2025-10-26 21:35:33]       Logged invalid link instance (ID: 21).
+[2025-10-26 21:35:35]     AI_REPLACE: Asking AI for replacement for: https://www.okta.com/identity-101/authentication-vs-authorization/ (Step: Authentication vs. Authorization)
+[2025-10-26 21:35:52]     AI_REPLACE: AI suggested: https://www.okta.com/identity-101/authn-vs-authz/
+[2025-10-26 21:35:52]       Attempting to update roadmap JSON for ID 6 with new URL: https://www.okta.com/identity-101/authn-vs-authz/
+[2025-10-26 21:35:52]         SUCCESS: Replaced link in Roadmap ID 6, Stage 1, Step 2.
+[2025-10-26 21:35:53]   Checking link 131/153: https://www.youtube.com/watch?v=ZtqBQ68cfJc
+[2025-10-26 21:35:56]   Checking link 132/153: https://docs.aws.amazon.com/IAM/latest/UserGuide/introduction.html
+[2025-10-26 21:35:58]   Checking link 133/153: https://docs.docker.com/get-started/
+[2025-10-26 21:36:00]   Checking link 134/153: https://developer.android.com/jetpack/compose/navigation
+[2025-10-26 21:36:03]   Checking link 135/153: https://www.youtube.com/watch?v=ZlqgB0yC38s
+[2025-10-26 21:36:04]   Checking link 136/153: https://aws.amazon.com/iam/what-is-iam/
+[2025-10-26 21:36:06]     INVALID Status: 404 for URL: https://aws.amazon.com/iam/what-is-iam/
+[2025-10-26 21:36:06]     INVALID link found: https://aws.amazon.com/iam/what-is-iam/ in Roadmap ID 3, Stage 1, Step 3
+[2025-10-26 21:36:06]       Logged invalid link instance (ID: 22).
+[2025-10-26 21:36:08]     AI_REPLACE: Asking AI for replacement for: https://aws.amazon.com/iam/what-is-iam/ (Step: Identity and Access Management (IAM))
+[2025-10-26 21:36:28]     AI_REPLACE: AI suggested: https://www.cloudflare.com/learning/access-management/what-is-iam/
+[2025-10-26 21:36:28]       Attempting to update roadmap JSON for ID 3 with new URL: https://www.cloudflare.com/learning/access-management/what-is-iam/
+[2025-10-26 21:36:28]         SUCCESS: Replaced link in Roadmap ID 3, Stage 1, Step 3.
+[2025-10-26 21:36:28]   Checking link 137/153: https://www.javascripttutorial.net/es6/
+[2025-10-26 21:36:32]   Checking link 138/153: https://www.youtube.com/watch?v=Ekf_i_53wiQ
+[2025-10-26 21:36:39]   Checking link 139/153: https://nextjs.org/learn
+[2025-10-26 21:36:40]   Checking link 140/153: https://krebsonsecurity.com/
+[2025-10-26 21:36:50]     TIMEOUT Error for URL: https://krebsonsecurity.com/
+[2025-10-26 21:36:50]     INVALID link found: https://krebsonsecurity.com/ in Roadmap ID 3, Stage 4, Step 3
+[2025-10-26 21:36:50]       Logged invalid link instance (ID: 23).
+[2025-10-26 21:36:52]     AI_REPLACE: Asking AI for replacement for: https://krebsonsecurity.com/ (Step: Stay Updated with Security News)
+[2025-10-26 21:36:53]     AI_REPLACE: Error during Gemini API call: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit.
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 2
+Please retry in 14.354414644s. [violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.5-pro"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+  quota_value: 2
+}
+, links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, retry_delay {
+  seconds: 14
+}
+]
+[2025-10-26 21:36:53]       AI failed to find replacement for instance (ID: 23).
+[2025-10-26 21:36:53]     INVALID link found: https://krebsonsecurity.com/ in Roadmap ID 6, Stage 4, Step 5
+[2025-10-26 21:36:53]       Logged invalid link instance (ID: 24).
+[2025-10-26 21:36:55]     AI_REPLACE: Asking AI for replacement for: https://krebsonsecurity.com/ (Step: Stay Updated)
+[2025-10-26 21:36:55]     AI_REPLACE: Error during Gemini API call: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/usage?tab=rate-limit.
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 2
+Please retry in 11.7780214s. [violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.5-pro"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+  quota_value: 2
+}
+, links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, retry_delay {
+  seconds: 11
+}
+]
+[2025-10-26 21:36:55]       AI failed to find replacement for instance (ID: 24).
+[2025-10-26 21:36:56]   Checking link 141/153: https://developer.android.com/studio/profile
+[2025-10-26 21:36:59]   Checking link 142/153: https://www.splunk.com/en_us/training/free-courses/splunk-fundamentals-1.html
+[2025-10-26 21:37:01]   Checking link 143/153: https://developer.android.com/codelabs/android-hilt
+[2025-10-26 21:37:04]   Checking link 144/153: https://www.youtube.com/watch?v=Zz6eOVaL23I
+[2025-10-26 21:37:06]   Checking link 145/153: https://owasp.org/www-project-top-ten/
+[2025-10-26 21:37:08]   Checking link 146/153: https://developer.android.com/topic/libraries/architecture/viewmodel
+[2025-10-26 21:37:10]   Checking link 147/153: https://www.youtube.com/watch?v=lb1Dw0elwMQ
+[2025-10-26 21:37:12]   Checking link 148/153: https://developer.android.com/codelabs/build-your-first-android-app
+[2025-10-26 21:37:15]   Checking link 149/153: https://www.recordedfuture.com/threat-intelligence-definition
+[2025-10-26 21:37:17]     INVALID Status: 404 for URL: https://www.recordedfuture.com/threat-intelligence-definition
+[2025-10-26 21:37:17]     INVALID link found: https://www.recordedfuture.com/threat-intelligence-definition in Roadmap ID 6, Stage 3, Step 6
+[2025-10-26 21:37:17]       Logged invalid link instance (ID: 25).
+[2025-10-26 21:37:19]     AI_REPLACE: Asking AI for replacement for: https://www.recordedfuture.com/threat-intelligence-definition (Step: Threat Intelligence)
+[2025-10-26 21:37:39]     AI_REPLACE: AI suggested: https://www.recordedfuture.com/threat-intelligence/what-is-threat-intelligence
+[2025-10-26 21:37:39]       Attempting to update roadmap JSON for ID 6 with new URL: https://www.recordedfuture.com/threat-intelligence/what-is-threat-intelligence
+[2025-10-26 21:37:39]         SUCCESS: Replaced link in Roadmap ID 6, Stage 3, Step 6.
+[2025-10-26 21:37:39]   Checking link 150/153: https://www.freecodecamp.org/learn/responsive-web-design/responsive-web-design-projects/build-a-personal-portfolio-webpage
+[2025-10-26 21:37:42]   Checking link 151/153: https://www.cisa.gov/uscert/bsi/articles/knowledge/principles/threats-and-risk-management
+[2025-10-26 21:37:53]     TIMEOUT Error for URL: https://www.cisa.gov/uscert/bsi/articles/knowledge/principles/threats-and-risk-management
+[2025-10-26 21:37:53]     INVALID link found: https://www.cisa.gov/uscert/bsi/articles/knowledge/principles/threats-and-risk-management in Roadmap ID 3, Stage 1, Step 1
+[2025-10-26 21:37:53]       Logged invalid link instance (ID: 26).
+[2025-10-26 21:37:55]     AI_REPLACE: Asking AI for replacement for: https://www.cisa.gov/uscert/bsi/articles/knowledge/principles/threats-and-risk-management (Step: Threats, Vulnerabilities, and Risks)
+[2025-10-26 21:38:17]     AI_REPLACE: AI suggested: https://www.cisa.gov/news-events/news/risk-vulnerability-and-threat-what-do-they-mean-and-how-are-they-different
+[2025-10-26 21:38:17]       Attempting to update roadmap JSON for ID 3 with new URL: https://www.cisa.gov/news-events/news/risk-vulnerability-and-threat-what-do-they-mean-and-how-are-they-different
+[2025-10-26 21:38:17]         SUCCESS: Replaced link in Roadmap ID 3, Stage 1, Step 1.
+[2025-10-26 21:38:17]   Checking link 152/153: https://www.youtube.com/watch?v=sBCE_hOFnOE
+[2025-10-26 21:38:19]   Checking link 153/153: https://www.youtube.com/watch?v=vBURTt97EkA
+[2025-10-26 21:38:22] Finished URL checks. Valid: 130, Invalid: 23, AI Replaced: 24, AI Failed: 2
+[2025-10-26 21:38:22] --- Roadmap Link Validation Finished ---
+[2025-10-26 21:38:22]     Lock released and file removed.
