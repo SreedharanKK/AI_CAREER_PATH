@@ -18,7 +18,7 @@ quiz_bp = Blueprint('quiz', __name__)
 # --- Configuration ---
 QUIZ_RETRY_COOLDOWN = timedelta(hours=1) # Set cooldown period (e.g., 1 hour)
 PASS_PERCENTAGE = 80 # Define pass percentage
-QUIZ_CACHE_VALIDITY = timedelta(days=7) # Cache quiz for 7 days
+QUIZ_CACHE_VALIDITY = timedelta(days=2) # Cache quiz for 7 days
 # ---------------------
 
 def _is_coding_topic(title):

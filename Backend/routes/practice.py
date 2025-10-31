@@ -26,7 +26,7 @@ except ImportError:
 practice_bp = Blueprint('practice', __name__)
 
 JUDGE0_API_URL = "https://ce.judge0.com"
-QUESTION_CACHE_VALIDITY = timedelta(days=7) # Cache questions for 7 days
+QUESTION_CACHE_VALIDITY = timedelta(days=2) # Cache questions for 7 days
 
 # --- /practice/question route (with Caching) ---
 @practice_bp.route('/practice/question', methods=['POST'])

@@ -61,9 +61,9 @@ process.stdin.on("end", async () => {
                  pass: "uqex zpbr xqzr xqlw",    // Your Gmail App Password
             },
             // Optional: Add TLS options for robustness if needed
-            // tls: {
-            //     rejectUnauthorized: false
-            // }
+            tls: {
+                rejectUnauthorized: false
+            }
         });
 
         // --- Send Mail ---
