@@ -219,3 +219,68 @@ def get_achievements_summary():
     finally:
         cur.close()
         conn.close()
+
+@dashboard_previews_bp.route('/job-search/latest', methods=['GET'])
+def get_latest_job_search():
+    """
+    Finds and returns a summary of the most recent job search
+    for the currently authenticated user.
+    """
+    token = request.cookies.get("token")
+    if not token:
+        return jsonify({"error": "Authentication required."}), 401
+    
+    user_id = None
+    try:
+        data = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        user_id = data["user_id"]
+    except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
+        return jsonify({"error": "Invalid or expired session."}), 401
+
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({"error": "Database connection failed."}), 500
+    
+    cur = conn.cursor(dictionary=True)
+    try:
+        # Query the job recommendation history table
+        cur.execute(
+            """
+            SELECT base_queries, locations, recommendations
+            FROM job_recommendation_history 
+            WHERE user_id = %s 
+            ORDER BY created_at DESC 
+            LIMIT 1
+            """,
+            (user_id,)
+        )
+        latest_search = cur.fetchone()
+
+        if not latest_search:
+            return jsonify({"message": "No job searches found."}), 200
+
+        # Create a summary
+        try:
+            locations_list = json.loads(latest_search['locations'])
+        except (json.JSONDecodeError, TypeError):
+            locations_list = []
+            
+        try:
+            recommendations_list = json.loads(latest_search['recommendations'])
+        except (json.JSONDecodeError, TypeError):
+            recommendations_list = []
+
+        summary = {
+            "base_queries": latest_search.get('base_queries', 'N/A'),
+            "locations": locations_list,
+            "job_count": len(recommendations_list)
+        }
+        
+        return jsonify({"latest_search": summary}), 200
+
+    except Exception as e:
+        print(f"❌ Error fetching latest job search: {e}")
+        return jsonify({"error": "An internal server error occurred."}), 500
+    finally:
+        if cur: cur.close()
+        if conn: conn.close()
