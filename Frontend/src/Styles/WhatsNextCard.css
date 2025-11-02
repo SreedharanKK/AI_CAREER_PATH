@@ -1,0 +1,179 @@
+/* src/Styles/WhatsNextCard.css */
+
+.whats-next-card {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.5rem 2rem;
+  background-color: rgba(28, 10, 78, 0.4); /* Bright purple, semi-transparent */
+  border: 1px solid #6f12bb;
+  border-radius: 16px;
+  margin-bottom: 2.5rem; /* Space below the card */
+  cursor: pointer;
+  transition: all 0.3s ease;
+  animation: fadeIn 0.5s ease-out;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.whats-next-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 30px rgba(123, 44, 191, 0.5);
+  border-color: #c77dff;
+}
+
+.whats-next-card.loading {
+  background-color: rgba(23, 11, 49, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #a0a0b0;
+  font-style: italic;
+  cursor: default;
+  box-shadow: none;
+}
+
+.whats-next-card.loading:hover {
+  transform: none;
+}
+
+.wn-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  color: #c77dff;
+}
+
+/* Specific icon colors */
+.wn-icon svg[class*="lucide-zap"] {
+  color: #ffca3a; /* Yellow for 'Zap' */
+}
+.wn-icon svg[class*="lucide-brain"] {
+  color: #56cfe1; /* Cyan for 'Brain' */
+}
+.wn-icon svg[class*="lucide-target"] {
+  color: #8aff8a; /* Green for 'Target' */
+}
+.wn-icon span[role="img"] {
+  font-size: 1.5rem;
+}
+
+.wn-content {
+  flex-grow: 1;
+}
+
+.wn-content h4 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0 0 0.25rem 0;
+}
+
+.wn-content p {
+  font-size: 1rem;
+  color: #e0e0e0;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.wn-content p strong {
+  color: #c77dff;
+  font-weight: 600;
+}
+
+/* Style strong tags for different types */
+.whats-next-card[data-type="ROADMAP_STEP"] strong {
+  color: #ffca3a;
+}
+.whats-next-card[data-type="PRACTICE_SKILLS"] strong {
+  color: #56cfe1;
+}
+.whats-next-card[data-type="RUN_ANALYSIS"] strong {
+  color: #8aff8a;
+}
+
+.wn-button {
+  flex-shrink: 0;
+  background-color: #ffffff;
+  color: #0b021d;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.whats-next-card:hover .wn-button {
+  background-color: #c77dff;
+  color: #ffffff;
+  transform: scale(1.05);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.wn-button svg {
+  transition: transform 0.3s ease;
+}
+
+.whats-next-card:hover .wn-button svg {
+  transform: translateX(3px);
+}
+
+/* Re-use spinner-sm from other CSS */
+.spinner-sm {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #c77dff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .whats-next-card {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1.5rem;
+    gap: 1rem;
+  }
+
+  .wn-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .wn-content h4 {
+    font-size: 1.1rem;
+  }
+  .wn-content p {
+    font-size: 0.95rem;
+  }
+
+  .wn-button {
+    margin-top: 0.5rem;
+    align-self: flex-start;
+  }
+}

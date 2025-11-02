@@ -18,7 +18,7 @@ quiz_bp = Blueprint('quiz', __name__)
 # --- Configuration ---
 QUIZ_RETRY_COOLDOWN = timedelta(hours=1) # Set cooldown period (e.g., 1 hour)
 PASS_PERCENTAGE = 80 # Define pass percentage
-QUIZ_CACHE_VALIDITY = timedelta(days=2) # Cache quiz for 7 days
+QUIZ_CACHE_VALIDITY = timedelta(days=2) # Cache quiz for 2 days
 # ---------------------
 
 def _is_coding_topic(title):
@@ -361,6 +361,8 @@ def submit_quiz():
     if not conn: return jsonify({"error": "Database connection failed."}), 500
     
     cur = conn.cursor(dictionary=True)
+    is_roadmap_complete = False
+    
     try:
         # Find or create the progress record ID
         cur.execute(
@@ -370,13 +372,13 @@ def submit_quiz():
         progress_record = cur.fetchone()
         
         if not progress_record:
-             cur.execute(
-                 """INSERT INTO user_roadmap_progress (user_id, roadmap_id, stage_index, step_index, is_unlocked)
-                    VALUES (%s, %s, %s, %s, %s)""",
-                 (user_id, roadmap_id, stage_index, step_index, True)
-             )
-             progress_id = cur.lastrowid
-             print(f"INFO: Created missing progress record (ID: {progress_id}) for user {user_id} on quiz submit.")
+            cur.execute(
+                """INSERT INTO user_roadmap_progress (user_id, roadmap_id, stage_index, step_index, is_unlocked)
+                   VALUES (%s, %s, %s, %s, %s)""",
+                (user_id, roadmap_id, stage_index, step_index, True)
+            )
+            progress_id = cur.lastrowid
+            print(f"INFO: Created missing progress record (ID: {progress_id}) for user {user_id} on quiz submit.")
         else:
             progress_id = progress_record['id']
 
@@ -394,9 +396,10 @@ def submit_quiz():
 
         # Unlock the next step if the quiz was passed
         if passed:
-            cur.execute("SELECT roadmap FROM roadmaps WHERE id = %s", (roadmap_id,))
+            cur.execute("SELECT domain, roadmap FROM roadmaps WHERE id = %s", (roadmap_id,)) # Also get domain
             roadmap_record = cur.fetchone()
             if roadmap_record and roadmap_record.get('roadmap'):
+                roadmap_domain = roadmap_record.get('domain', 'this roadmap') # Get domain for logging
                 roadmap_data = roadmap_record['roadmap']
                 full_roadmap_data = json.loads(roadmap_data)
                 
@@ -411,32 +414,39 @@ def submit_quiz():
                             next_stage_index, next_step_index = next_stage_index + 1, 0
                         
                         if next_stage_index < len(full_roadmap):
-                             if (next_stage_index < len(full_roadmap) and
-                                 isinstance(full_roadmap[next_stage_index], dict) and
-                                 'steps' in full_roadmap[next_stage_index] and
-                                 isinstance(full_roadmap[next_stage_index]['steps'], list) and
-                                 next_step_index < len(full_roadmap[next_stage_index]['steps'])):
-
+                            # Check if the next step is valid
+                            if (isinstance(full_roadmap[next_stage_index], dict) and
+                                'steps' in full_roadmap[next_stage_index] and
+                                isinstance(full_roadmap[next_stage_index]['steps'], list) and
+                                next_step_index < len(full_roadmap[next_stage_index]['steps'])):
+                                
+                                # This is the existing code to unlock the next step
                                 cur.execute(
                                     "INSERT INTO user_roadmap_progress (user_id, roadmap_id, stage_index, step_index, is_unlocked) VALUES (%s, %s, %s, %s, %s) ON DUPLICATE KEY UPDATE is_unlocked = TRUE",
                                     (user_id, roadmap_id, next_stage_index, next_step_index, True)
                                 )
-                             else:
-                                 print(f"⚠️ Warning: Next step ({next_stage_index}, {next_step_index}) seems invalid. Not unlocking.")
+                            else:
+                                print(f"⚠️ Warning: Next step ({next_stage_index}, {next_step_index}) seems invalid. Not unlocking.")
                         else:
-                             print(f"✅ User {user_id} completed the last step of the roadmap.")
+                            # --- *** SET THE FLAG HERE *** ---
+                            is_roadmap_complete = True
+                            print(f"✅ User {user_id} completed the ENTIRE roadmap for domain {roadmap_domain}!")
+                        # --- *** END MODIFIED LOGIC *** ---
                     else:
                         print(f"⚠️ Warning: Roadmap structure seems invalid or stage_index {stage_index} out of bounds.")
                 else:
                     print(f"⚠️ Warning: Roadmap JSON for ID {roadmap_id} is missing 'roadmap' key or is not a list.")
             else:
-                 print(f"⚠️ Warning: Could not find roadmap data for ID {roadmap_id} to unlock next step.")
+                print(f"⚠️ Warning: Could not find roadmap data for ID {roadmap_id} to unlock next step.")
 
         conn.commit()
 
         return jsonify({
-            "success": True, "score": percentage_score,
-            "passed": passed, "detailed_results": detailed_results
+            "success": True, 
+            "score": percentage_score,
+            "passed": passed, 
+            "detailed_results": detailed_results,
+            "is_roadmap_complete": is_roadmap_complete # <-- Flag is added
         }), 200
 
     except Exception as e:

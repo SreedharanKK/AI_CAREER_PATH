@@ -14,6 +14,7 @@ import JobRecommendations from './Pages/JobRecommendations';
 import PracticePage from './Pages/PracticePage';
 import PracticeQuestionsPage from './Pages/PracticeQuestionsPage';
 import JobHistory from './Pages/JobHistory';
+import WhatsNextCard from './components/WhatsNextCard';
 
 
 function AnimatedRoutes() {
@@ -33,7 +34,8 @@ function AnimatedRoutes() {
         <Route path='/JobRecommendations' element={<JobRecommendations/>}/>
         <Route path='/PracticePage' element={<PracticePage/>}/>
         <Route path='/JobHistory' element={<JobHistory/>}/>
-        <Route path='PracticeQuestionsPage' element={<PracticeQuestionsPage/>}/>
+        <Route path='/PracticeQuestionsPage' element={<PracticeQuestionsPage/>}/>
+        <Route path='/WhatsNextCard' element={<WhatsNextCard/>}/>
       </Routes>
     </AnimatePresence>
   );

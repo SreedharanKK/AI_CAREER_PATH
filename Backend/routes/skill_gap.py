@@ -412,3 +412,74 @@ def get_last_analysis_domain():
         if cur: cur.close()
         if conn: conn.close()
 
+@skill_gap_bp.route('/skill-gap/history', methods=['GET'])
+def get_skill_gap_history():
+    """
+    Fetches the history of skill gap analysis (count of missing skills)
+    for a specific domain for the current user, sorted by date.
+    """
+    token = request.cookies.get("token")
+    if not token: 
+        return jsonify({"error": "Authentication required."}), 401
+    try:
+        data = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        user_id = data["user_id"]
+    except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
+        return jsonify({"error": "Invalid or expired session."}), 401
+
+    # Get the domain from the query parameter
+    domain_filter = request.args.get('domain')
+    if not domain_filter:
+        return jsonify({"error": "A 'domain' query parameter is required."}), 400
+
+    conn = get_db_connection()
+    if not conn: 
+        return jsonify({"error": "Database connection failed."}), 500
+    
+    cur = conn.cursor(dictionary=True)
+    try:
+        # Select the date and the missing_skills JSON
+        # IMPORTANT: Order by created_at ASC (Ascending) for the chart's X-axis
+        cur.execute("""
+            SELECT created_at, missing_skills
+            FROM skill_gap_analysis
+            WHERE user_id = %s AND interested_domain = %s
+            ORDER BY created_at ASC
+        """, (user_id, domain_filter))
+        
+        history = cur.fetchall()
+        
+        chart_data = []
+        if not history:
+            return jsonify(chart_data), 200 # Return empty list if no history
+
+        # Process the data
+        for record in history:
+            missing_skills_list = []
+            if record.get('missing_skills'):
+                try:
+                    # Robust JSON parsing
+                    skills_data = record['missing_skills']
+                    if isinstance(skills_data, (bytes, bytearray)):
+                        skills_data = skills_data.decode('utf-8')
+                    if isinstance(skills_data, str):
+                        missing_skills_list = json.loads(skills_data)
+                    elif isinstance(skills_data, list):
+                        missing_skills_list = skills_data
+                except (json.JSONDecodeError, TypeError):
+                    pass # Keep list empty if error
+            
+            chart_data.append({
+                "date": record['created_at'].strftime('%d %b %Y'), # Format the date
+                "count": len(missing_skills_list) # Get the number of missing skills
+            })
+        
+        return jsonify(chart_data), 200
+
+    except Exception as e:
+        print(f"❌ Error fetching skill gap history for user {user_id}, domain {domain_filter}: {e}")
+        traceback.print_exc()
+        return jsonify({"error": "An internal server error occurred fetching history."}), 500
+    finally:
+        if cur: cur.close()
+        if conn: conn.close()

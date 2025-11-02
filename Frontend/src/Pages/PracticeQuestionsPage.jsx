@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Play, Terminal, AlertCircle, Loader2, ArrowLeft, Send } from 'lucide-react';
+import { Play, Terminal, AlertCircle, Loader2, ArrowLeft, Send, Sparkles, X  } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Radar } from 'react-chartjs-2';
 import {
@@ -28,69 +28,128 @@ import useParticleBackground from '../hooks/UseParticleBackground';
 ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip, Legend);
 
 // --- AiAnalysisDisplay Component ---
-const AiAnalysisDisplay = ({ analysis }) => {
-    if (!analysis || !analysis.scores) return null;
-    let statusClass = 'status-unknown';
-    const lowerStatus = analysis.overall_status?.toLowerCase() || '';
-    if (lowerStatus.includes('correct')) { statusClass = 'status-correct'; }
-    else if (lowerStatus.includes('incorrect') || lowerStatus.includes('error')) { statusClass = 'status-incorrect'; }
-    else if (lowerStatus.includes('issue')) { statusClass = 'status-issue'; }
+const AiAnalysisDisplay = ({ analysis, onExplainClick }) => {
+  
+  // --- *** FIX 2: More robust check for scores object *** ---
+  // This prevents the page from crashing if AI fails to return scores
+  if (!analysis || typeof analysis.scores !== 'object' || analysis.scores === null) {
+      // Show the feedback, just not the chart
+      return (
+          <div className="ai-analysis-section">
+              <h3>AI Code Analysis: <span className={`analysis-status-badge status-issue`}>{analysis?.overall_status || 'Analysis Incomplete'}</span></h3>
+              <div className="analysis-chart-container">
+                  <p style={{ color: '#a0a0b0', textAlign: 'center', paddingTop: '4rem' }}>
+                      AI could not generate scores, but provided summary feedback.
+                  </p>
+              </div>
+              <div className="analysis-block summary">
+                  <div className="summary-header">
+                      <h4>Summary:</h4>
+                      <button className="explain-btn" onClick={onExplainClick} title="Let AI explain this feedback">
+                          <Sparkles size={14} /> Explain This?
+                      </button>
+                  </div>
+                  <p>{analysis?.summary_feedback || 'AI analysis failed to generate a response.'}</p>
+              </div>
+          </div>
+      );
+  }
+  
+  // --- If check passes, proceed as normal ---
+  let statusClass = 'status-unknown';
+  const lowerStatus = analysis.overall_status?.toLowerCase() || '';
+  if (lowerStatus.includes('correct')) { statusClass = 'status-correct'; }
+  else if (lowerStatus.includes('incorrect') || lowerStatus.includes('error')) { statusClass = 'status-incorrect'; }
+  else if (lowerStatus.includes('issue')) { statusClass = 'status-issue'; }
+  
+  // Ensure scores are numbers before passing to chart
+  const chartData = {
+      labels: ['Correctness', 'Efficiency', 'Readability', 'Robustness'],
+      datasets: [{
+          label: 'Score (out of 10)', 
+          data: [
+              Number(analysis.scores.correctness) || 0, 
+              Number(analysis.scores.efficiency) || 0,
+              Number(analysis.scores.readability) || 0, 
+              Number(analysis.scores.robustness) || 0,
+          ],
+          backgroundColor: 'rgba(199, 125, 255, 0.2)', 
+          borderColor: 'rgba(199, 125, 255, 1)',
+          borderWidth: 2,
+      }],
+    };
     
-    // Ensure scores are numbers before passing to chart
-    const chartData = {
-        labels: ['Correctness', 'Efficiency', 'Readability', 'Robustness'],
-        datasets: [{
-            label: 'Score (out of 10)', 
-            data: [
-                Number(analysis.scores.correctness) || 0, 
-                Number(analysis.scores.efficiency) || 0,
-                Number(analysis.scores.readability) || 0, 
-                Number(analysis.scores.robustness) || 0,
-            ],
-            backgroundColor: 'rgba(199, 125, 255, 0.2)', 
-            borderColor: 'rgba(199, 125, 255, 1)',
-            borderWidth: 2,
-        }],
-     };
-     
-    const chartOptions = {
-        scales: { r: {
-            angleLines: { color: 'rgba(255, 255, 255, 0.2)' }, 
-            grid: { color: 'rgba(255, 255, 255, 0.2)' },
-            pointLabels: { color: '#e0e0e0', font: { size: 13, family: "'Inter', sans-serif" } },
-            ticks: { 
-                color: '#a0a0b0', 
-                backdropColor: 'rgba(11, 2, 29, 0.8)', 
-                stepSize: 2, 
-                font: { size: 10, family: "'Inter', sans-serif" }, 
-                suggestedMin: 0, 
-                suggestedMax: 10, 
-            },
-            min: 0, 
-            max: 10,
-        }},
-        plugins: { 
-            legend: { display: false }, 
-            tooltip: {
-                backgroundColor: '#0B021D', 
-                borderColor: '#9D4EDD', 
-                borderWidth: 1,
-                titleFont: { size: 14, family: "'Inter', sans-serif" }, 
-                bodyFont: { size: 12, family: "'Inter', sans-serif" },
-                boxPadding: 4,
-            }
-        },
-        maintainAspectRatio: false,
-     };
-     
-    return ( 
-        <div className="ai-analysis-section">
-            <h3>AI Code Analysis: <span className={`analysis-status-badge ${statusClass}`}>{analysis.overall_status || 'N/A'}</span></h3>
-            <div className="analysis-chart-container"> <Radar data={chartData} options={chartOptions} /> </div>
-            <div className="analysis-block summary">
-                <h4>Summary:</h4> <p>{analysis.summary_feedback || 'N/A'}</p>
+  const chartOptions = {
+      scales: { r: {
+          angleLines: { color: 'rgba(255, 255, 255, 0.2)' }, 
+          grid: { color: 'rgba(255, 255, 255, 0.2)' },
+          pointLabels: { color: '#e0e0e0', font: { size: 13, family: "'Inter', sans-serif" } },
+          ticks: { 
+              color: '#a0a0b0', 
+              backdropColor: 'rgba(11, 2, 29, 0.8)', 
+              stepSize: 2, 
+              font: { size: 10, family: "'Inter', sans-serif" }, 
+              suggestedMin: 0, 
+              suggestedMax: 10, 
+          },
+          min: 0, 
+          max: 10,
+      }},
+      plugins: { 
+          legend: { display: false }, 
+          tooltip: {
+              backgroundColor: '#0B021D', 
+              borderColor: '#9D4EDD', 
+              borderWidth: 1,
+              titleFont: { size: 14, family: "'Inter', sans-serif" }, 
+              bodyFont: { size: 12, family: "'Inter', sans-serif" },
+              boxPadding: 4,
+          }
+      },
+      maintainAspectRatio: false,
+    };
+    
+  return (  
+      <div className="ai-analysis-section">
+          <h3>AI Code Analysis: <span className={`analysis-status-badge ${statusClass}`}>{analysis.overall_status || 'N/A'}</span></h3>
+          <div className="analysis-chart-container"> <Radar data={chartData} options={chartOptions} /> </div>
+          <div className="analysis-block summary">
+              <div className="summary-header">
+                  <h4>Summary:</h4>
+                  <button className="explain-btn" onClick={onExplainClick} title="Let AI explain this feedback">
+                      <Sparkles size={14} /> Explain This?
+                  </button>
+              </div>
+              <p>{analysis.summary_feedback || 'N/A'}</p>
+          </div>
+      </div>  
+  );
+};
+
+// --- NEW: Explanation Modal Component ---
+const ExplainModal = ({ isOpen, onClose, explanation, isLoading }) => {
+    if (!isOpen) return null;
+
+    return (
+        <div className="modal-overlay-practice" onClick={onClose}>
+            <div className="modal-content-practice explain-modal" onClick={(e) => e.stopPropagation()}>
+                <button className="modal-close-btn-history" onClick={onClose} aria-label="Close modal"><X size={24} /></button>
+                <h2>AI Tutor Explanation</h2>
+                {isLoading ? (
+                    <div className="explanation-loading">
+                        <Loader2 size={28} className="spinner-icon animate-spin" />
+                        <p>AI Tutor is thinking...</p>
+                    </div>
+                ) : (
+                    <div className="explanation-content">
+                        <p>{explanation || "No explanation available."}</p>
+                    </div>
+                )}
+                <button className="practice-q-btn secondary close-explain-modal" onClick={onClose}>
+                    Got it, thanks!
+                </button>
             </div>
-        </div> 
+        </div>
     );
 };
 
@@ -145,6 +204,9 @@ export default function PracticeQuestionsPage() {
     const [analysis, setAnalysis] = useState(null);
     const [isExecuting, setIsExecuting] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isExplainModalOpen, setIsExplainModalOpen] = useState(false);
+    const [explanationText, setExplanationText] = useState("");
+    const [isExplaining, setIsExplaining] = useState(false);
 
     const canvasRef = useRef(null);
     const { apiFetch, isLoading: isFetchingQuestion, error: fetchError, setError } = useApi();
@@ -242,6 +304,35 @@ export default function PracticeQuestionsPage() {
          }
     };
 
+    const handleExplainClick = async () => {
+        if (!analysis || !analysis.summary_feedback || !sourceCode) {
+            toast.error("Could not find feedback to explain.");
+            return;
+        }
+        
+        console.log("Requesting explanation for:", analysis.summary_feedback);
+        setIsExplaining(true);
+        setExplanationText("");
+        setIsExplainModalOpen(true);
+        setError(null);
+
+        const data = await apiFetch('/api/user/practice/explain', {
+            method: 'POST',
+            body: JSON.stringify({
+                user_code: sourceCode,
+                summary_feedback: analysis.summary_feedback
+            })
+        });
+
+        setIsExplaining(false);
+        if (data && data.explanation) {
+            setExplanationText(data.explanation);
+        } else {
+            // Error is handled by useApi hook and shown as toast
+            setExplanationText(fetchError || "Could not get an explanation at this time.");
+        }
+    };
+
     // Show API errors via toast
     useEffect(() => {
         if (fetchError) {
@@ -311,7 +402,8 @@ export default function PracticeQuestionsPage() {
                     {/* Left side: Question or Analysis */}
                     <div className="question-description-panel">
                         {analysis ? (
-                            <AiAnalysisDisplay analysis={analysis} />
+                            <AiAnalysisDisplay analysis={analysis} 
+                                onExplainClick={handleExplainClick} />
                         ) : (
                             <>
                                 <h3>Problem Description</h3>
@@ -407,6 +499,12 @@ export default function PracticeQuestionsPage() {
                          )}
                     </div>
                 </div>
+                <ExplainModal
+                    isOpen={isExplainModalOpen}
+                    onClose={() => setIsExplainModalOpen(false)}
+                    explanation={explanationText}
+                    isLoading={isExplaining}
+                />
             </div>
         </AnimatedPage>
     );
