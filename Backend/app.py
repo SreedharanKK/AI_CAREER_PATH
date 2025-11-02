@@ -18,6 +18,9 @@ from routes.job_recs import job_recs_bp
 from routes.practice import practice_bp
 from routes.feedback import feedback_bp
 from routes.news_feed import news_feed_bp
+from routes.whats_next import whats_next_bp
+from routes.saved_jobs import saved_jobs_bp
+from routes.ai_helpers import ai_helpers_bp
 
 app = Flask(__name__)
 CORS(app, 
@@ -49,6 +52,9 @@ app.register_blueprint(job_recs_bp, url_prefix="/api/user")
 app.register_blueprint(practice_bp, url_prefix="/api/user")
 app.register_blueprint(feedback_bp, url_prefix="/api/feedback")
 app.register_blueprint(news_feed_bp, url_prefix="/api/user")
+app.register_blueprint(whats_next_bp, url_prefix="/api/user")
+app.register_blueprint(saved_jobs_bp, url_prefix="/api/user")
+app.register_blueprint(ai_helpers_bp, url_prefix="/api/user")
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000, host="localhost")

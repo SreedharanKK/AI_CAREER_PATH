@@ -9,6 +9,7 @@ import {
 import '../Styles/Dashboard.css';
 import { useApi } from '../hooks/useApi';
 import useParticleBackground from '../hooks/UseParticleBackground';
+import WhatsNextCard from '../components/WhatsNextCard';
 import toast from 'react-hot-toast';
 
 export default function Dashboard() {
@@ -24,6 +25,7 @@ export default function Dashboard() {
     const [newsFeed, setNewsFeed] = useState(null);
     const [initialLoading, setInitialLoading] = useState(true);
     const [latestJobSearch, setLatestJobSearch] = useState(null);
+    const [whatsNext, setWhatsNext] = useState(null);
 
     const navigate = useNavigate();
     const canvasRef = useRef(null);
@@ -122,6 +124,20 @@ export default function Dashboard() {
              return () => clearTimeout(timer);
         }
     }, [error, initialLoading, userName, setError]);
+
+    useEffect(() => {
+        const fetchWhatsNext = async () => {
+            const data = await apiFetch('/api/user/whats-next');
+            if (data) {
+                setWhatsNext(data);
+            }
+        };
+        
+        // Only fetch this *after* you've confirmed the user is logged in
+        if (userName) {
+            fetchWhatsNext();
+        }
+    }, [apiFetch, userName]); // Run when userName is available
 
 
     // --- Handlers ---
@@ -228,6 +244,11 @@ export default function Dashboard() {
 
                 {/* --- Main Content --- */}
                 <main className="dashboard-main-content">
+                    <WhatsNextCard 
+                    data={whatsNext} 
+                    isLoading={isApiLoading && !whatsNext} 
+                    userName={userName}
+                />
                     {!showProfile ? (
                         <div className="card-grid dashboard-grid">
                             {/* Achievement Card */}

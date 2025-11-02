@@ -158,7 +158,6 @@
     gap: 1rem;
 }
 
-/* Re-use spinner from other pages */
 .spinner {
   width: 50px;
   height: 50px;
@@ -168,3 +167,292 @@
   animation: spin 1s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* --- Subtitle for empty saved jobs --- */
+.feedback-subtitle {
+    font-size: 1rem;
+    color: #7a6c90;
+    margin-top: 0.5rem;
+}
+
+/* --- Additions for Tabs and Saved Jobs --- */
+
+/* --- Tab Styles --- */
+.history-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tab-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #A0A0B0;
+    background-color: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    transform: translateY(1px); /* Align with bottom border */
+}
+
+.tab-btn:hover {
+    color: #E0E0E0;
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.tab-btn.active {
+    color: #56CFE1;
+    border-bottom-color: #56CFE1;
+}
+
+/* --- Saved Job Card Styles --- */
+.saved-jobs-grid {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Allow 3 columns */
+}
+
+.history-job-card.saved-job-card {
+    padding: 0; /* Remove base padding, as we add it to sub-elements */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%; /* Ensure cards are same height */
+}
+
+.history-job-card-link-main {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    padding: 1.25rem; /* Add padding to the main link area */
+    padding-bottom: 0.75rem;
+    flex-grow: 1; /* Allow this part to grow */
+}
+.history-job-card-link-main:hover .history-job-title {
+    color: #C77DFF; /* Highlight title on hover */
+}
+
+.saved-at-timestamp {
+    font-size: 0.8rem;
+    color: #7a6c90;
+    font-style: italic;
+    margin-top: 0.75rem;
+}
+
+/* --- Button on Saved Card --- */
+.card-actions {
+    padding: 0 1.25rem 1.25rem 1.25rem;
+    margin-top: 0.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+.generate-letter-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    background-color: #56CFE1;
+    color: #0B021D;
+    justify-content: center;
+}
+.generate-letter-btn:hover {
+    background-color: #7FFFeF;
+    box-shadow: 0 4px 15px rgba(86, 207, 225, 0.3);
+    transform: translateY(-2px);
+}
+
+/* Save button styles */
+.save-job-btn {
+  background: transparent;
+  border: none;
+  color: #a0a0b0;
+  padding: 0.5rem;
+  margin-left: 0.5rem;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.save-job-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+.save-job-btn.saved {
+  color: #56CFE1; /* Cyan color when saved */
+}
+.save-job-btn.saved:hover {
+  background-color: rgba(255, 77, 109, 0.1); /* Reddish hover to indicate "unsave" */
+  color: #ff6b6b;
+}
+
+/* Spinner for unsave button */
+.save-job-btn .spinner-sm {
+  width: 18px;
+  height: 18px;
+  border-width: 2px;
+  animation: spin 1s linear infinite;
+}
+
+/* --- Cover Letter Modal --- */
+.cover-letter-modal-content {
+    max-width: 700px;
+    width: 90%;
+    text-align: left;
+    position: relative;
+    padding: 2rem;
+}
+.cover-letter-modal-content h2 {
+    text-align: center;
+    font-size: 1.5rem;
+    color: #C77DFF;
+    margin-bottom: 0.5rem;
+}
+.cover-letter-job-title {
+    text-align: center;
+    font-size: 0.95rem;
+    color: #A0A0B0;
+    margin-bottom: 1.5rem;
+    font-style: italic;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 1rem;
+}
+
+.cover-letter-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 250px;
+    color: #A0A0B0;
+    gap: 1rem;
+}
+.cover-letter-loading .spinner-icon {
+    width: 32px;
+    height: 32px;
+    animation: spin 1s linear infinite; /* Add spin animation */
+}
+.cover-letter-loading .loading-subtext {
+    font-size: 0.9rem;
+    color: #7a6c90;
+}
+
+.cover-letter-output textarea {
+    width: 100%;
+    height: 300px;
+    resize: none;
+    background-color: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 1rem;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: #E0E0E0;
+    scrollbar-width: thin;
+    scrollbar-color: #4a3470 #1c0a3a;
+}
+.cover-letter-output textarea:focus {
+    outline: none;
+    border-color: #C77DFF;
+}
+
+.cover-letter-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1.5rem;
+}
+.copy-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: #8AFF8A;
+    color: #0B021D;
+    border: none;
+    border-radius: 8px;
+    padding: 0.7rem 1rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.copy-btn:hover:not(:disabled) {
+    background-color: #AFFFAD;
+    transform: scale(1.05);
+}
+.copy-btn:disabled {
+    background-color: #555;
+    color: #999;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* Re-use modal styles from practice page */
+.modal-overlay-practice {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(0, 0, 0, 0.75);
+    display: flex; justify-content: center; align-items: center;
+    z-index: 1000; backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    animation: fadeInOverlay 0.3s ease;
+}
+.modal-content-practice {
+    background-color: #1c0a3a; padding: 2.5rem;
+    border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.2);
+    max-width: 500px; width: 90%;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    animation: zoomInModal 0.4s 0.1s ease forwards;
+}
+@keyframes fadeInOverlay { from { opacity: 0; } to { opacity: 1; } }
+@keyframes zoomInModal { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+.modal-close-btn-history {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: transparent;
+  border: none;
+  color: #7a6c90;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  line-height: 0; 
+}
+.modal-close-btn-history:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.practice-q-btn.secondary {
+    padding: 10px 20px; font-size: 1rem; font-weight: 600;
+    border-radius: 8px; cursor: pointer; transition: all 0.3s ease;
+    border: none; background-color: rgba(255, 255, 255, 0.1);
+    color: #E0E0E0; border: 1px solid rgba(255, 255, 255, 0.2);
+}
+.practice-q-btn.secondary:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+.close-explain-modal {
+    display: block;
+    margin: 0; /* Override auto margin */
+}
+
+/* Add the job-card-header style for the saved card */
+.job-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+

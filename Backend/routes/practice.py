@@ -26,7 +26,7 @@ except ImportError:
 practice_bp = Blueprint('practice', __name__)
 
 JUDGE0_API_URL = "https://ce.judge0.com"
-QUESTION_CACHE_VALIDITY = timedelta(days=2) # Cache questions for 7 days
+QUESTION_CACHE_VALIDITY = timedelta(days=2) # Cache questions for 2 days
 
 # --- /practice/question route (with Caching) ---
 @practice_bp.route('/practice/question', methods=['POST'])
@@ -262,6 +262,9 @@ def submit_practice_code():
 
     conn = None
     cur = None
+    analysis_data = {} # Define analysis_data in the outer scope
+    cleaned_response_text = "" # Define cleaned_response_text in the outer scope
+    
     try:
         # --- 1. Get AI Analysis (With SQL-aware prompt) ---
         is_sql = "sql" in skill.lower() or "mysql" in skill.lower()
@@ -311,7 +314,6 @@ def submit_practice_code():
             Generate the JSON object now. Do NOT include ```json markdown.
             """
         
-        analysis_data = {}
         try:
             print(f"⏳ Calling Gemini API to *analyze* practice submission for user {user_id}")
             response = gemini_model.generate_content(prompt)
@@ -320,22 +322,45 @@ def submit_practice_code():
             analysis_data = json.loads(cleaned_response_text)
             
             # --- *** THIS IS THE FIX *** ---
-            # Add the validation check back in
-            if not ("overall_status" in analysis_data and "summary_feedback" in analysis_data and "scores" in analysis_data):
-                raise ValueError("AI analysis response missing required keys (overall_status, summary_feedback, scores).")
+            # We must validate that the AI response contains ALL the keys we need
+            # before we try to use them or send them to the frontend.
+            
+            # 1. Check for top-level keys
+            if not ("overall_status" in analysis_data and 
+                    "summary_feedback" in analysis_data and 
+                    "scores" in analysis_data):
+                print(f"❌ AI analysis response missing top-level keys. Data: {analysis_data}")
+                raise ValueError("AI analysis response missing required keys (overall_status, summary_feedback, or scores).")
+
+            # 2. Check for nested score keys
+            scores_obj = analysis_data.get("scores")
+            if not (isinstance(scores_obj, dict) and 
+                    "correctness" in scores_obj and 
+                    "efficiency" in scores_obj and 
+                    "readability" in scores_obj and 
+                    "robustness" in scores_obj):
+                print(f"❌ AI analysis 'scores' object is malformed. Data: {scores_obj}")
+                # We can try to recover by adding dummy scores
+                analysis_data["scores"] = {
+                    "correctness": 0, "efficiency": 0, "readability": 0, "robustness": 0
+                }
+                analysis_data["summary_feedback"] = f"AI Warning: Could not generate scores. {analysis_data.get('summary_feedback', '')}"
+                # But it's safer to just raise the error
+                raise ValueError("AI analysis 'scores' object is missing required nested keys.")
             # --- *** END FIX *** ---
 
         except ResourceExhausted as rate_limit_error:
             print(f"❌ RATE LIMIT HIT for Gemini API (Analysis): {rate_limit_error}")
             return jsonify({"error": "AI Analyzer is busy, please try submitting again in a moment."}), 429
         except (json.JSONDecodeError, ValueError) as json_error:
-            print(f"❌ Error parsing AI analysis response for user {user_id}: {json_error}")
+            # This block will now catch our new ValueError
+            print(f"❌ Error parsing or validating AI analysis response for user {user_id}: {json_error}")
             print(f"--- Raw AI Analysis Response ---:\n{cleaned_response_text}\n---")
             return jsonify({"error": "AI generated an invalid analysis format."}), 500
         except Exception as e:
-             print(f"❌ Error during AI analysis call for user {user_id}: {e}")
-             traceback.print_exc()
-             return jsonify({"error": "An unexpected error occurred during AI analysis."}), 500
+            print(f"❌ Error during AI analysis call for user {user_id}: {e}")
+            traceback.print_exc()
+            return jsonify({"error": "An unexpected error occurred during AI analysis."}), 500
         
         # 2. Save attempt to practice_history table
         conn = get_db_connection()
@@ -365,6 +390,75 @@ def submit_practice_code():
         if cur: cur.close()
         if conn: conn.close()
 
+@practice_bp.route('/practice/explain', methods=['POST'])
+def explain_practice_feedback():
+    """
+    Uses the AI to provide a simple, encouraging explanation
+    of feedback given on a practice problem.
+    """
+    token = request.cookies.get("token")
+    if not token: 
+        return jsonify({"error": "Authentication required."}), 401
+    try:
+        # We don't strictly need user_id here, but it's good practice to validate the token
+        jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+    except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
+        return jsonify({"error": "Invalid or expired session."}), 401
+
+    if not request.is_json: 
+        return jsonify({"error": "Request must be JSON"}), 400
+
+    req_data = request.get_json()
+    user_code = req_data.get('user_code')
+    summary_feedback = req_data.get('summary_feedback')
+
+    if not user_code or not summary_feedback:
+        return jsonify({"error": "user_code and summary_feedback are required."}), 400
+
+    if not gemini_model: 
+        return jsonify({"error": "AI Model is not available."}), 503
+
+    try:
+        # --- The New Prompt ---
+        prompt = f"""
+        A student is practicing coding and is confused by some feedback.
+        Act as a friendly, encouraging tutor.
+
+        Here is the student's code:
+        ```
+        {user_code}
+        ```
+
+        The AI analysis gave this feedback:
+        "{summary_feedback}"
+
+        Your Task:
+        Explain this feedback in simple, encouraging terms (2-3 sentences).
+        Give a small, general hint on how to fix it or what to think about,
+        but DO NOT give the full solution or write any code.
+
+        Example (if feedback was "Low robustness"):
+        "Great start! 'Low robustness' just means the code might crash if it gets an unexpected input. For example, what would happen if the list was empty? Try thinking about how you can handle that case at the beginning of your function!"
+        
+        Example (if feedback was "Inefficient algorithm"):
+        "Good job getting it to work! 'Inefficient' means there might be a faster way. Your code is using a nested loop, which can be slow on big lists. Think about if you could solve this by looping just once, maybe using a Set or a Dictionary to store values you've already seen."
+        
+        Now, provide the explanation for the student's feedback:
+        """
+
+        print(f"⏳ Calling Gemini API to *explain* practice feedback.")
+        response = gemini_model.generate_content(prompt)
+        explanation_text = response.text.strip()
+        
+        return jsonify({"explanation": explanation_text}), 200
+
+    except ResourceExhausted as rate_limit_error:
+        print(f"❌ RATE LIMIT HIT for Gemini API (Explain): {rate_limit_error}")
+        return jsonify({"error": "AI Analyzer is busy, please try explaining again in a moment."}), 429
+    except Exception as e:
+        print(f"❌ Error during AI explanation call: {e}")
+        traceback.print_exc()
+        return jsonify({"error": "An unexpected error occurred during AI explanation."}), 500
 
 # --- /practice/history route (Unchanged) ---
 @practice_bp.route('/practice/history', methods=['GET'])

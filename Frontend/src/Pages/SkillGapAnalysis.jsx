@@ -6,12 +6,152 @@ import { useApi } from '../hooks/useApi';
 import useParticleBackground from '../hooks/UseParticleBackground';
 import toast from 'react-hot-toast';
 import FeedbackStars from '../components/FeedbackStars'; // Import FeedbackStars
+import { Line } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler, // To fill area under the line
+} from 'chart.js';
+
+// --- NEW: Register Chart.js components ---
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+);
+
+// --- NEW: Chart Sub-Component ---
+// This component renders the line chart
+const SkillGrowthChart = ({ historyData }) => {
+  if (!historyData || historyData.length < 2) {
+    // Don't show the chart if there's only one (or zero) data points
+    return (
+        <div className="no-analysis-placeholder">
+            <p>Run the analysis again after completing roadmap steps to see your progress chart here!</p>
+        </div>
+    );
+  }
+  if (historyData.length < 2) {
+    // Show a specific message if there's only one data point
+    const singlePoint = historyData[0];
+    return (
+        <div className="no-analysis-placeholder">
+            <p>Your first analysis for **{domain}** on {singlePoint.date} found **{singlePoint.count} missing skills**.</p>
+            <p className="chart-placeholder-secondary">Complete steps on your roadmap and run the analysis again to see your progress!</p>
+        </div>
+    );
+  }
+
+  const chartLabels = historyData.map(item => item.date);
+  const chartValues = historyData.map(item => item.count);
+
+  const data = {
+    labels: chartLabels,
+    datasets: [
+      {
+        label: 'Missing Skills Count',
+        data: chartValues,
+        fill: true,
+        backgroundColor: (context) => {
+          const ctx = context.chart.ctx;
+          if (!ctx) return 'rgba(157, 78, 221, 0.1)'; // Fallback
+          const gradient = ctx.createLinearGradient(0, 0, 0, 250); // Vertical gradient
+          gradient.addColorStop(0, 'rgba(157, 78, 221, 0.4)'); // Start color
+          gradient.addColorStop(1, 'rgba(157, 78, 221, 0.0)'); // End color (transparent)
+          return gradient;
+        },
+        borderColor: '#9D4EDD', // Purple line
+        borderWidth: 2,
+        tension: 0.3, // Makes the line curved
+        pointBackgroundColor: '#FFFFFF',
+        pointBorderColor: '#9D4EDD',
+        pointRadius: 5,
+        pointHoverRadius: 8,
+        pointHoverBackgroundColor: '#FFFFFF',
+        pointHoverBorderWidth: 2,
+      },
+    ],
+  };
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      title: {
+        display: true,
+        text: 'Your Skill Gap Progress Over Time',
+        color: '#E0E0E0',
+        font: { size: 16, family: "'Inter', sans-serif" }
+      },
+      tooltip: {
+        enabled: true,
+        backgroundColor: '#0B021D',
+        borderColor: '#C77DFF',
+        borderWidth: 1,
+        padding: 12,
+        titleColor: '#A0A0B0',
+        bodyColor: '#E0E0E0',
+        bodyFont: {
+            size: 14,
+            weight: '600',
+        },
+        titleFont: {
+            size: 12,
+        },
+        callbacks: {
+            title: function(tooltipItems) {
+                // Title: "Analysis on 01 Nov 2025"
+                return `Analysis on ${tooltipItems[0].label}`;
+            },
+            label: function(tooltipItem) {
+                // Body: "You had 8 missing skills"
+                const count = tooltipItem.raw || 0;
+                return ` You had ${count} missing skills`;
+            }
+        }
+      }
+    },
+    scales: {
+      x: {
+        ticks: { color: '#A0A0B0' },
+        grid: { color: 'rgba(255, 255, 255, 0.1)' }
+      },
+      y: {
+        ticks: { 
+            color: '#A0A0B0',
+            stepSize: 1, // Only show whole numbers
+        },
+        grid: { color: 'rgba(255, 255, 255, 0.1)' },
+        beginAtZero: true
+      },
+    },
+  };
+
+  return (
+    <div className="skill-chart-container">
+      <Line options={options} data={data} />
+    </div>
+  );
+};
 
 export default function SkillGapAnalysis() {
     const navigate = useNavigate();
     const [editedSkills, setEditedSkills] = useState("");
     const [domain, setDomain] = useState("");
     const [analysisResult, setAnalysisResult] = useState(null); // Holds the analysis data {missing_skills, acquired_skills, recommendations, id?, created_at?}
+    const [skillHistory, setSkillHistory] = useState(null);
     const canvasRef = useRef(null);
 
     const { apiFetch, isLoading: isApiLoading, error, setError } = useApi();
@@ -53,6 +193,7 @@ export default function SkillGapAnalysis() {
      const fetchLatestAnalysis = useCallback(async (selectedDomain) => {
          if (!selectedDomain) {
              setAnalysisResult(null);
+             setSkillHistory(null);
              setFeedbackRating(0); // Reset feedback if domain cleared
              setFeedbackComment("");
              setFeedbackSubmittedForId(null);
@@ -62,22 +203,31 @@ export default function SkillGapAnalysis() {
          setError(null);
          setAnalysisResult(null); // Clear previous results
          // Reset feedback state when fetching latest for a domain
+         setSkillHistory(null);
          setFeedbackRating(0);
          setFeedbackComment("");
          setFeedbackSubmittedForId(null);
 
-         const data = await apiFetch(`/api/user/skill-gap/latest?domain=${encodeURIComponent(selectedDomain)}`);
-         if (data?.analysis) {
-             console.log("Latest analysis data:", data.analysis);
-             // Store analysis ID if available (assuming backend sends it)
-             setAnalysisResult({ ...data.analysis, id: data.analysis.id || Date.now() }); // Use timestamp as fallback ID if needed
-         } else if (!error && data?.message) {
-             console.log(data.message); // "No analysis found"
-             setAnalysisResult(null);
-         }
-         // Error handled by useApi
-     // eslint-disable-next-line react-hooks/exhaustive-deps
-     }, [apiFetch, setError]); // Removed error, setAnalysisResult
+         const [latestData, historyData] = await Promise.all([
+             apiFetch(`/api/user/skill-gap/latest?domain=${encodeURIComponent(selectedDomain)}`),
+             apiFetch(`/api/user/skill-gap/history?domain=${encodeURIComponent(selectedDomain)}`)
+        ]);
+        
+        // Process latest analysis
+         if (latestData?.analysis) {
+             console.log("Latest analysis data:", latestData.analysis);
+             setAnalysisResult({ ...latestData.analysis, id: latestData.analysis.id || Date.now() }); 
+         } else if (!error && latestData?.message) {
+             console.log(latestData.message); // "No analysis found"
+             setAnalysisResult(null);
+         }
+         
+        // --- NEW: Process history data ---
+        if (historyData) {
+            console.log("Skill history data:", historyData);
+            setSkillHistory(historyData);
+        }
+     }, [apiFetch, setError, error]); // Removed error, setAnalysisResult
 
      // This effect runs whenever 'domain' changes
      useEffect(() => {
@@ -94,6 +244,7 @@ export default function SkillGapAnalysis() {
         setError(null);
         setAnalysisResult(null); // Clear previous results
         // Reset feedback state when triggering new analysis
+        setSkillHistory(null);
         setFeedbackRating(0);
         setFeedbackComment("");
         setFeedbackSubmittedForId(null);
@@ -113,6 +264,10 @@ export default function SkillGapAnalysis() {
                  // Store analysis ID if backend sends it, otherwise use a fallback like timestamp
                  // Assuming the backend might return the ID of the newly created/updated record
                  setAnalysisResult({ ...data, id: data.id || Date.now() });
+                 const historyData = await apiFetch(`/api/user/skill-gap/history?domain=${encodeURIComponent(domain)}`);
+                if (historyData) {
+                    setSkillHistory(historyData);
+                }
             } else if (!error) {
                  console.error("Analysis API response missing expected fields", data);
                  setError("Received incomplete analysis results from the AI.");
@@ -174,6 +329,16 @@ export default function SkillGapAnalysis() {
                     <h2>Skill Gap Analysis</h2>
                     <p>Compare your skills against your desired career path.</p>
                 </div>
+
+                {isApiLoading && !skillHistory && (
+                    <div className="loading-spinner">
+                         <div className="spinner"></div>
+                         <p>Loading analysis history...</p>
+                    </div>
+                )}
+                {!isApiLoading && skillHistory && (
+                    <SkillGrowthChart historyData={skillHistory} domain={domain} />
+                )}
 
                 {/* Skills Textarea */}
                 <label htmlFor="skills-textarea-id">Your Combined Skills (Profile, Resume):</label>

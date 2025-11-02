@@ -231,9 +231,17 @@ export default function QuizPage() {
             setQuizQuestions(null); // Clear questions after submission to show results
             
             // --- *** NEW: Trigger effects on result *** ---
-            if (data.passed) {
-                setShowConfetti(true); // YAY!
-            }
+            if (data.passed && data.is_roadmap_complete) {
+               // Show confetti and a special "Congrats" toast!
+               setShowConfetti(true);
+               toast.success("Congratulations! You've completed the entire roadmap!", {
+                   duration: 5000,
+                   icon: '🎉',
+               });
+           } else if (data.passed) {
+               // This is the original confetti logic for a normal pass
+               setShowConfetti(true);
+           }
             // ---------------------------------------------
         }
     };

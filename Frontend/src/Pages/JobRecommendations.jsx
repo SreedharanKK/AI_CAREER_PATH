@@ -6,7 +6,7 @@ import '../Styles/JobRecommendations.css';
 import { useApi } from '../hooks/useApi';
 import useParticleBackground from '../hooks/UseParticleBackground';
 import toast from 'react-hot-toast';
-import { Bot, Search, MapPin, History} from 'lucide-react';
+import { Bot, Search, MapPin, History,  Bookmark, BookmarkCheck, Loader2} from 'lucide-react';
 
 export default function JobRecommendations() {
     const navigate = useNavigate();
@@ -28,6 +28,8 @@ export default function JobRecommendations() {
     const [isSearchingJobs, setIsSearchingJobs] = useState(false);
     const [latestRecommendation, setLatestRecommendation] = useState(null); // null: loading, object: data, false: no history
     const [isFetchingHistory, setIsFetchingHistory] = useState(true);
+    const [savedJobIds, setSavedJobIds] = useState(new Set());
+    const [isSaving, setIsSaving] = useState(null);
 
     // Fetch initial profile data
     useEffect(() => {
@@ -66,9 +68,16 @@ export default function JobRecommendations() {
                  // -----------------------
              }
         };
+        const fetchSavedJobIds = async () => {
+            const data = await apiFetch('/api/user/saved-jobs/ids');
+            if (data && Array.isArray(data.saved_job_ids)) {
+                setSavedJobIds(new Set(data.saved_job_ids));
+            }
+        };
         setError(null);
         fetchProfileForJobs();
         fetchLatestHistory();
+        fetchSavedJobIds();
     }, [apiFetch, setError]);
 
     // Show errors via toast
@@ -164,6 +173,54 @@ export default function JobRecommendations() {
             console.error("Job search returned no data or invalid format.");
             if (setError) setError("No job results found or API returned invalid format.");
             setJobResults([]);
+        }
+    };
+
+    const handleToggleSave = async (e, job) => {
+        e.preventDefault(); // Prevent the <a> link from navigating
+        e.stopPropagation(); // Stop click from propagating to the card
+        
+        if (isSaving === job.job_id) return; // Prevent double-clicks
+        
+        setIsSaving(job.job_id); // Set loading state for this specific button
+        setError(null);
+
+        const isSaved = savedJobIds.has(job.job_id);
+        
+        try {
+            if (isSaved) {
+                // --- Unsave Job ---
+                const data = await apiFetch(`/api/user/unsave-job/${job.job_id}`, {
+                    method: 'DELETE',
+                });
+                if (data && data.success) {
+                    toast.success("Job unsaved!");
+                    setSavedJobIds(prevSet => {
+                        const newSet = new Set(prevSet);
+                        newSet.delete(job.job_id);
+                        return newSet;
+                    });
+                } else {
+                    toast.error(error || "Failed to unsave job.");
+                }
+            } else {
+                // --- Save Job ---
+                const data = await apiFetch('/api/user/save-job', {
+                    method: 'POST',
+                    body: JSON.stringify(job), // Send the full job object
+                });
+                if (data && data.success) {
+                    toast.success("Job saved!");
+                    setSavedJobIds(prevSet => new Set(prevSet).add(job.job_id));
+                } else {
+                    toast.error(error || "Failed to save job.");
+                }
+            }
+        } catch (err) {
+            // Error is already set by useApi hook
+            toast.error(error || "An error occurred.");
+        } finally {
+            setIsSaving(null); // Clear loading state
         }
     };
 
@@ -324,25 +381,43 @@ export default function JobRecommendations() {
                                 ) : (
                                     <div className="jobs-grid">
                                         {/* ... Job Card Rendering ... */}
-                                        {jobResults.map((job, index) => (
-                                            <a key={`${job.job_id || index}-${job.company_name}`} href={job.job_url} target="_blank" rel="noopener noreferrer" className="job-card-link">
-                                                <div className="job-card">
-                                                    <div className="job-card-header">
-                                                        <h3 className="job-title">{job.job_title}</h3>
+                                        {jobResults.map((job, index) => {
+                                            const isSaved = savedJobIds.has(job.job_id);
+                                            return (
+                                                <a key={`${job.job_id || index}-${job.company_name}`} href={job.job_url} target="_blank" rel="noopener noreferrer" className="job-card-link">
+                                                    <div className="job-card">
+                                                        <div className="job-card-header">
+                                                            <h3 className="job-title">{job.job_title}</h3>
+                                                            {/* --- NEW: Save Button --- */}
+                                                            <button 
+                                                                className={`save-job-btn ${isSaved ? 'saved' : ''}`} 
+                                                                onClick={(e) => handleToggleSave(e, job)}
+                                                                disabled={isSaving === job.job_id}
+                                                                title={isSaved ? "Unsave this job" : "Save this job"}
+                                                            >
+                                                                {isSaving === job.job_id ? (
+                                                                    <Loader2 size={18} className="spinner-sm" />
+                                                                ) : isSaved ? (
+                                                                    <BookmarkCheck size={18} />
+                                                                ) : (
+                                                                    <Bookmark size={18} />
+                                                                )}
+                                                            </button>
+                                                        </div>
                                                         <p className="company-name">{job.company_name}</p>
+                                                        <div className="job-details">
+                                                            <p><span className="detail-icon">📍</span> {job.location}</p>
+                                                            <p><span className="detail-icon">💰</span> {job.estimated_salary_lpa}</p>
+                                                        </div>
+                                                        <div className="job-skills">
+                                                            <h4>Source:</h4>
+                                                            <p className="recommendation-reason">{job.source}</p>
+                                                        </div>
+                                                        <div className="view-job-btn"> View Job Posting ↗ </div>
                                                     </div>
-                                                    <div className="job-details">
-                                                        <p><span className="detail-icon">📍</span> {job.location}</p>
-                                                        <p><span className="detail-icon">💰</span> {job.estimated_salary_lpa}</p>
-                                                    </div>
-                                                    <div className="job-skills">
-                                                         <h4>Source:</h4>
-                                                         <p className="recommendation-reason">{job.source}</p>
-                                                    </div>
-                                                    <div className="view-job-btn"> View Job Posting ↗ </div>
-                                                </div>
-                                            </a>
-                                        ))}
+                                                </a>
+                                            );
+                                        })}
                                     </div>
                                 )}
                             </>

@@ -272,3 +272,119 @@
      .code-editor-textarea-hidden { padding: 10px !important; }
 
 }
+.summary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.summary-header h4 {
+  margin-bottom: 0; /* Remove bottom margin from h4 */
+}
+
+.explain-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #c0c0d0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex-shrink: 0; /* Prevent shrinking */
+}
+
+.explain-btn svg {
+  color: #ffca3a; /* Yellow sparkle */
+}
+
+.explain-btn:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border-color: #ffca3a;
+}
+
+/* --- NEW: Styles for Explanation Modal --- */
+/* (Re-using .modal-overlay-practice from PracticePage.css) */
+/* (Re-using .modal-content-practice from PracticePage.css) */
+
+.modal-content-practice.explain-modal {
+  max-width: 600px; /* Wider modal for text */
+  text-align: left; /* Align text left */
+  position: relative; /* For close button */
+  padding: 2rem;
+}
+
+.modal-content-practice.explain-modal h2 {
+  text-align: center;
+  font-size: 1.5rem;
+  color: #C77DFF;
+  margin-bottom: 1.5rem;
+}
+
+/* (Re-using .modal-close-btn-history from PracticePage.css) */
+.modal-close-btn-history {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: transparent;
+  border: none;
+  color: #7a6c90;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  line-height: 0; /* Fix for icon alignment */
+}
+.modal-close-btn-history:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.explanation-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  min-height: 150px;
+  color: #a0a0b0;
+  font-size: 1.1rem;
+}
+
+.explanation-content {
+  min-height: 150px;
+  max-height: 40vh; /* Limit height */
+  overflow-y: auto;
+  background-color: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
+  margin-bottom: 1.5rem;
+  /* Custom scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: #4a3470 #1c0a3a;
+}
+.explanation-content::-webkit-scrollbar { width: 6px; }
+.explanation-content::-webkit-scrollbar-track { background: #1c0a3a; border-radius: 3px;}
+.explanation-content::-webkit-scrollbar-thumb { background-color: #4a3470; border-radius: 3px; }
+
+.explanation-content p {
+  color: #e0e0e0;
+  font-size: 1.05rem;
+  line-height: 1.7;
+  white-space: pre-wrap; /* Respect newlines from the AI */
+}
+
+/* (Re-using .practice-q-btn.secondary from this file) */
+.close-explain-modal {
+  display: block;
+  margin: 1rem auto 0 auto; /* Center the button */
+  width: auto;
+}
