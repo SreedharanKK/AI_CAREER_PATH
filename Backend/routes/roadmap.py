@@ -1,10 +1,11 @@
 from flask import Blueprint, request, jsonify
 import jwt
 import json
-import re
+import re, traceback
 from db_config import get_db_connection
 from config import SECRET_KEY
 from api_config import gemini_model
+from google.api_core.exceptions import ResourceExhausted
 
 roadmap_bp = Blueprint('roadmap', __name__)
 
@@ -101,7 +102,7 @@ def _apply_progress_to_roadmap(user_id, roadmap_id, roadmap_data, cur, conn):
 @roadmap_bp.route('/generate-roadmap', methods=['POST'])
 def generate_roadmap():
     """
-    Generates a new roadmap if one doesn't exist, or refreshes an existing one.
+    Generates a new roadmap. Can be a 'general' roadmap or 'personalized' based on user's skills.
     Enforces a limit of 2 total roadmaps per user.
     """
     token = request.cookies.get("token")
@@ -116,6 +117,7 @@ def generate_roadmap():
 
     req_data = request.get_json()
     domain = req_data.get('domain')
+    is_personalized = req_data.get('is_personalized', False)
     if not domain:
         return jsonify({"error": "A domain is required to generate a roadmap."}), 400
 
@@ -147,25 +149,74 @@ def generate_roadmap():
         
         if roadmap_count >= 2:
             return jsonify({"error": "You can only have 2 active roadmaps at a time. Please delete one to add another."}), 403 # 403 Forbidden
+        
+        user_skills_list = []
+        if is_personalized:
+            try:
+                # Fetch manual skills
+                cur.execute("SELECT skills FROM user_details WHERE user_id = %s", (user_id,))
+                manual_skills_row = cur.fetchone()
+                if manual_skills_row and manual_skills_row.get('skills'):
+                    manual_data = manual_skills_row['skills']
+                    if isinstance(manual_data, (bytes, bytearray)): manual_data = manual_data.decode('utf-8')
+                    if isinstance(manual_data, str): user_skills_list.extend(json.loads(manual_data))
+                    elif isinstance(manual_data, list): user_skills_list.extend(manual_data)
+
+                # Fetch extracted skills
+                cur.execute("SELECT skills FROM extract_skills WHERE user_id = %s", (user_id,))
+                extracted_skills_row = cur.fetchone()
+                if extracted_skills_row and extracted_skills_row.get('skills'):
+                    extracted_data = extracted_skills_row['skills']
+                    if isinstance(extracted_data, (bytes, bytearray)): extracted_data = extracted_data.decode('utf-8')
+                    if isinstance(extracted_data, str): user_skills_list.extend(json.loads(extracted_data))
+                    elif isinstance(extracted_data, list): user_skills_list.extend(extracted_data)
+                
+                # Deduplicate
+                user_skills_list = sorted(list(set([str(s).strip().lower() for s in user_skills_list if s and str(s).strip()])))
+                print(f"ℹ️ Found {len(user_skills_list)} unique skills for personalized roadmap: {user_skills_list}")
+            except Exception as e:
+                print(f"⚠️ Warning: Could not fetch user skills for personalization. Defaulting to general. Error: {e}")
+                is_personalized = False # Fallback to general if skills fail
+
+        personalization_instructions = ""
+        if is_personalized and user_skills_list:
+            personalization_instructions = f"""
+            This is a PERSONALIZED roadmap. The user already has the following skills: {json.dumps(user_skills_list)}.
+            Your task is to create a roadmap that FOCUSES ON THE GAPS.
+            - You MUST skip introductory steps for skills the user already has (e.g., if they know 'Python', skip 'Introduction to Python').
+            - Start the roadmap at the next logical step.
+            - If they have foundational skills, make the "Foundations" stage smaller or skip it.
+            """
+        else:
+            personalization_instructions = "This is a GENERAL roadmap. Assume the user is a beginner and start from the fundamentals."
 
         # --- AI Prompt Engineering (Unchanged) ---
         prompt = f"""
         You are a senior technical curriculum designer who creates world-class learning roadmaps similar to those found on roadmap.sh.
         Your task is to generate a detailed, step-by-step learning roadmap for an aspiring '{domain}'.
 
+        {personalization_instructions}
+
         RULES FOR THE ROADMAP:
-        1.  **Structure:** The roadmap must be broken down into logical stages (e.g., "Foundations", "Core Concepts", "Advanced Topics", "Specializations").
+        1.  **Structure:** The roadmap must be broken down into logical stages (e.g., "Foundations", "Core Concepts", "Advanced Topics").
         2.  **Content:** Each stage must contain a list of specific, actionable learning steps.
-        3.  **Study Links:** For EVERY step, you MUST provide a high-quality, real, and publicly accessible "study_link". These links should point to official documentation, renowned educational YouTube channels (like freeCodeCamp, Traversy Media), MDN Web Docs, or top-tier technical blogs. Do NOT use placeholder links.
-        4.  **JSON Format:** Your response MUST be a valid JSON object. The root object should have one key: "roadmap". The value of "roadmap" is a list of stage objects.
+        3.  **JSON Format:** Your response MUST be a valid JSON object. The root object should have one key: "roadmap". The value of "roadmap" is a list of stage objects.
 
-        Each step object within a stage MUST have four keys:
-        - "title": The name of the skill or concept.
-        - "description": A brief, one-sentence explanation of why this step is important.
-        - "resource_type": (e.g., "Documentation", "Video Tutorial", "Interactive Course", "Project Idea", "Book").
-        - "study_link": A valid, direct URL to a learning resource for the step.
+        Each "stage" object MUST have:
+        - "stage_title": (string) The name of the stage.
+        - "steps": (list) A list of step objects.
 
-        Here is the required JSON structure and a perfect example:
+        Each "step" object within a stage MUST have:
+        - "title": (string) The name of the skill or concept.
+        - "description": (string) A brief, one-sentence explanation of why this step is important.
+        - "study_links": (list) A list of 2-3 resource objects.
+
+        Each "study_link" object MUST have:
+        - "title": (string) The name of the resource (e.g., "MDN Documentation", "freeCodeCamp Video").
+        - "type": (string) The type of resource. Must be one of: ["Documentation", "Video", "Article", "Book", "Project", "Interactive Course"].
+        - "url": (string) A valid, real, publicly accessible URL to the resource. Do NOT use placeholder links.
+
+        EXAMPLE JSON STRUCTURE:
         {{
           "roadmap": [
             {{
@@ -174,35 +225,66 @@ def generate_roadmap():
                 {{
                   "title": "Learn HTML Basics",
                   "description": "Understand the fundamental structure of all web pages.",
-                  "resource_type": "Documentation",
-                  "study_link": "https://developer.mozilla.org/en-US/docs/Web/HTML"
+                  "study_links": [
+                    {{
+                        "title": "HTML Introduction - W3Schools",
+                        "type": "Interactive Course",
+                        "url": "https://www.w3schools.com/html/html_intro.asp"
+                    }},
+                    {{
+                        "title": "HTML Crash Course - Traversy Media",
+                        "type": "Video",
+                        "url": "https://www.youtube.com/watch?v=UB1O30fR-EE"
+                    }}
+                  ]
                 }}
               ]
             }}
           ]
         }}
+        
+        Generate ONLY the valid JSON object.
         """
 
-        # --- Call the AI and process the response (Unchanged) ---
-        response = gemini_model.generate_content(prompt)
-        cleaned_response_text = re.sub(r'```(json)?|```', '', response.text).strip()
-        roadmap_data = json.loads(cleaned_response_text)
+        try:
+            print(f"⏳ Calling Gemini API for {'PERSONALIZED' if is_personalized else 'GENERAL'} roadmap for {domain}")
+            response = gemini_model.generate_content(prompt)
+            cleaned_response_text = re.sub(r'```(json)?\s*|\s*```$', '', response.text, flags=re.MULTILINE | re.DOTALL).strip()
+            roadmap_data = json.loads(cleaned_response_text)
+            
+            # --- Simple validation ---
+            if 'roadmap' not in roadmap_data or not isinstance(roadmap_data['roadmap'], list):
+                raise ValueError("AI response missing 'roadmap' key or it's not a list.")
+            if not roadmap_data['roadmap'][0].get('steps'):
+                 raise ValueError("AI response seems malformed, first stage has no steps.")
 
-        # --- Save the newly generated roadmap to the database (Unchanged) ---
+        except (json.JSONDecodeError, ValueError) as e:
+            print(f"❌ Error parsing AI roadmap response: {e}")
+            print(f"--- Raw AI Response ---:\n{cleaned_response_text}\n---")
+            return jsonify({"error": "AI generated an invalid roadmap format. Please try again."}), 500
+        except ResourceExhausted:
+            print(f"❌ RATE LIMIT HIT for Gemini API (Roadmap)")
+            return jsonify({"error": "AI service is busy. Please try again in a moment."}), 429
+
+        # --- Save the newly generated roadmap to the database ---
         cur.execute(
-            "INSERT INTO roadmaps (user_id, domain, roadmap) VALUES (%s, %s, %s)",
-            (user_id, domain, json.dumps(roadmap_data))
+            # --- NEW: Added is_personalized column ---
+            "INSERT INTO roadmaps (user_id, domain, roadmap, is_personalized) VALUES (%s, %s, %s, %s)",
+            (user_id, domain, json.dumps(roadmap_data), is_personalized)
         )
         conn.commit()
         
         roadmap_id = cur.lastrowid # Get the ID of the new roadmap
 
         # Apply initial progress (unlock first step) and return
+        print(f"✅ Successfully generated and saved new roadmap (ID: {roadmap_id})")
         return jsonify(_apply_progress_to_roadmap(user_id, roadmap_id, roadmap_data, cur, conn)), 200
+
 
     except Exception as e:
         conn.rollback()
         print(f"❌ Error in generate_roadmap: {e}")
+        traceback.print_exc()
         # Check for unique constraint violation (from our new SQL rule)
         if "Duplicate entry" in str(e):
              return jsonify({"error": f"A roadmap for {domain} already exists."}), 409 # 409 Conflict
@@ -264,7 +346,7 @@ def get_user_roadmap():
 @roadmap_bp.route('/get-all-active-roadmaps', methods=['GET'])
 def get_all_active_roadmaps():
     """
-    Fetches all roadmaps for the user, along with their completion percentage.
+    Fetches all roadmaps for the user, along with their completion percentage and personalization status.
     """
     token = request.cookies.get("token")
     if not token:
@@ -281,23 +363,28 @@ def get_all_active_roadmaps():
         return jsonify({"error": "Database connection failed."}), 500
     
     cur = conn.cursor(dictionary=True)
+    if not conn:
+        return jsonify({"error": "Database connection failed."}), 500
+    
+    cur = conn.cursor(dictionary=True)
     try:
+        # --- NEW: Select is_personalized ---
         cur.execute(
-            "SELECT id, domain, roadmap FROM roadmaps WHERE user_id = %s ORDER BY created_at DESC",
+            "SELECT id, domain, roadmap, is_personalized FROM roadmaps WHERE user_id = %s ORDER BY created_at DESC",
             (user_id,)
         )
         all_roadmaps = cur.fetchall()
         
         roadmap_summaries = []
         for r in all_roadmaps:
-            # Need to load the JSON to count total steps
             roadmap_data = json.loads(r['roadmap']) 
             completion_percentage = _get_roadmap_completion(user_id, r['id'], roadmap_data, cur)
             
             roadmap_summaries.append({
                 "id": r['id'],
                 "domain": r['domain'],
-                "completion_percentage": completion_percentage
+                "completion_percentage": completion_percentage,
+                "is_personalized": r.get('is_personalized', False) # --- NEW ---
             })
 
         return jsonify(roadmap_summaries), 200

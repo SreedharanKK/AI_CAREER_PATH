@@ -448,3 +448,44 @@
     .modal-content-history { padding: 1.5rem; }
     .modal-content-history h2 { font-size: 1.5rem; }
 }
+
+/* --- NEW: Weakest Skill Card --- */
+.weakest-skill-card {
+  background: linear-gradient(45deg, rgba(86, 207, 225, 0.1), rgba(157, 78, 221, 0.1));
+  border: 1px solid #56CFE1;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  text-align: center;
+  animation: fadeInPractice 0.5s ease-out; /* Add fade-in */
+}
+.weakest-skill-card h4 {
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #56CFE1;
+  margin-bottom: 0.75rem;
+}
+.weakest-skill-card p {
+  color: #E0E0E0;
+  font-size: 1.05rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+.weakest-skill-card p strong {
+    color: #fff;
+    font-weight: 600;
+}
+.weakest-skill-card .skill-button {
+  background-color: #56CFE1;
+  color: #0B021D;
+  width: auto;
+  display: inline-block;
+  font-weight: 600;
+  border-color: #56CFE1;
+}
+.weakest-skill-card .skill-button:hover {
+  background-color: #7FFFeF;
+  border-color: #7FFFeF;
+  color: #0B021D;
+}

@@ -188,6 +188,7 @@ export default function PracticePage() {
     const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
     const [selectedAttempt, setSelectedAttempt] = useState(null);
     const [isFetchingHistory, setIsFetchingHistory] = useState(true);
+    const [weakestSkill, setWeakestSkill] = useState(null);
     // -----------------------
 
     const [isFetchingSkills, setIsFetchingSkills] = useState(true);
@@ -205,7 +206,8 @@ export default function PracticePage() {
             
             const results = await Promise.allSettled([
                  apiFetch('/api/user/skill-gap/skills'),
-                 apiFetch('/api/user/practice/history')
+                 apiFetch('/api/user/practice/history'),
+                 apiFetch('/api/user/practice/weakest-skill')
             ]);
 
             if (!isMounted) return;
@@ -235,6 +237,13 @@ export default function PracticePage() {
                  setHistory([]);
             }
             setIsFetchingHistory(false);
+            if (results[2].status === 'fulfilled' && results[2].value?.weakest_skill) {
+                setWeakestSkill(results[2].value.weakest_skill);
+                console.log("Weakest skill found:", results[2].value.weakest_skill);
+            } else {
+                console.warn("Could not load weakest skill:", results[2].reason);
+                setWeakestSkill(null);
+            }
         };
         fetchAllData();
         return () => { isMounted = false; };
@@ -293,6 +302,19 @@ export default function PracticePage() {
                         <h1>Practice Hub</h1>
                         <p>Select a programming language from your profile to practice.</p>
                     </div>
+
+                    {weakestSkill && !isFetchingSkills && (
+                        <div className="weakest-skill-card">
+                            <h4>Recommended For You</h4>
+                            <p>Your practice history shows <strong>{weakestSkill}</strong> is your weakest area. Let's work on it!</p>
+                            <button 
+                                className="skill-button" 
+                                onClick={() => handleSkillClick(weakestSkill)}
+                            >
+                                Practice {weakestSkill} ➔
+                            </button>
+                        </div>
+                    )}
 
                     {/* --- Loading Skills State --- */}
                     {isFetchingSkills && (

@@ -3,13 +3,15 @@ import json
 import re
 from db_config import get_db_connection
 from api_config import gemini_model
+import traceback
 
 def trigger_skill_extraction(user_id):
     """
-    Connects to the DB, reads a user's resume, uses Gemini to extract skills,
+    Connects to the DB, reads a user's resume TEXT from the
+    extracted_resume_text table, uses Gemini to extract skills,
     and saves them to the extract_skills table.
     """
-    print(f"--- Starting skill extraction for user_id: {user_id} ---")
+    print(f"--- [Skill Extractor] Starting skill extraction for user_id: {user_id} ---")
     
     conn = get_db_connection()
     if not conn:
@@ -19,23 +21,14 @@ def trigger_skill_extraction(user_id):
     cur = conn.cursor(dictionary=True)
     try:
         # Step 1: Get the path to the user's extracted resume text
-        cur.execute("SELECT extracted_path FROM user_details WHERE user_id = %s", (user_id,))
-        user_details = cur.fetchone()
+        cur.execute("SELECT extracted_text FROM extracted_resume_text WHERE user_id = %s", (user_id,))
+        resume_record = cur.fetchone()
 
-        if not user_details or not user_details['extracted_path']:
-            print(f"✅ No resume found for user_id: {user_id}. Skipping extraction.")
+        if not resume_record or not resume_record.get('extracted_text'):
+            print(f"✅ [Skill Extractor] No resume text found in DB for user_id: {user_id}. Skipping extraction.")
             return
-
-        # Step 2: Read the resume content from the file
-        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        file_path = os.path.join(base_dir, user_details['extracted_path'])
-
-        if not os.path.exists(file_path):
-            print(f"❌ Extracted resume file not found at {file_path} for user_id: {user_id}.")
-            return
-
-        with open(file_path, 'r', encoding='utf-8') as f:
-            resume_content = f.read()
+        
+        resume_content = resume_record['extracted_text']
         
         if not resume_content.strip():
             print(f"✅ Resume for user_id: {user_id} is empty. Skipping extraction.")

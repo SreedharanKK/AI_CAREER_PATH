@@ -59,15 +59,15 @@ def update_user_details():
         final_dob = None
         if dob_from_form:
             try:
-                 dt_object = datetime.strptime(dob_from_form, '%Y-%m-%d')
-                 final_dob = dt_object.strftime('%Y-%m-%d')
+                dt_object = datetime.strptime(dob_from_form, '%Y-%m-%d')
+                final_dob = dt_object.strftime('%Y-%m-%d')
             except ValueError:
-                 try:
-                     dt_object = datetime.strptime(dob_from_form, '%a, %d %b %Y %H:%M:%S %Z')
-                     final_dob = dt_object.strftime('%Y-%m-%d')
-                 except ValueError:
-                     print(f"Warning: Could not parse DOB string: {dob_from_form}")
-                     final_dob = existing_details.get("dob")
+                try:
+                    dt_object = datetime.strptime(dob_from_form, '%a, %d %b %Y %H:%M:%S %Z')
+                    final_dob = dt_object.strftime('%Y-%m-%d')
+                except ValueError:
+                    print(f"Warning: Could not parse DOB string: {dob_from_form}")
+                    final_dob = existing_details.get("dob")
         else:
             final_dob = existing_details.get("dob")
 
@@ -85,13 +85,13 @@ def update_user_details():
             
             # Handle existing value (from DB or default dict)
             if existing_db_value:
-                 if isinstance(existing_db_value, list): return json.dumps(existing_db_value)
-                 # Check if it's a valid JSON string before returning
-                 try: 
-                     json.loads(existing_db_value)
-                     return existing_db_value
-                 except (json.JSONDecodeError, TypeError):
-                     return json.dumps([]) # It was invalid, return empty list
+                if isinstance(existing_db_value, list): return json.dumps(existing_db_value)
+                # Check if it's a valid JSON string before returning
+                try: 
+                    json.loads(existing_db_value)
+                    return existing_db_value
+                except (json.JSONDecodeError, TypeError):
+                    return json.dumps([]) # It was invalid, return empty list
             return json.dumps([])
 
         # Merge New Data with Existing Data
@@ -117,30 +117,35 @@ def update_user_details():
                 resume_save_path = os.path.join(UPLOAD_FOLDER, filename)
                 resume_file.save(resume_save_path)
                 
-                # --- *** THIS IS THE FIX *** ---
                 updated_data["resume_path"] = f"uploads/resumes/{filename}" # Set relative path
                 print(f"Saved new resume to: {resume_save_path}")
+
+                # --- *** THIS IS THE FIX *** ---
+                # Set the flag to True HERE, right after saving the file.
+                # This ensures the skill extraction thread runs
+                # even if text extraction fails.
+                new_resume_processed = True
+                # --- *** END FIX *** ---
 
                 # 2. Extract text from the new resume
                 extracted_text = extract_resume_text(resume_save_path)
                 
                 if "Error" in extracted_text or "Unsupported" in extracted_text:
-                     print(f"Warning: Issue extracting text from {filename}: {extracted_text}")
-                     # --- *** NEW: Save NULL to the text table *** ---
-                     cursor.execute(
-                         "INSERT INTO extracted_resume_text (user_id, extracted_text) VALUES (%s, %s) ON DUPLICATE KEY UPDATE extracted_text = %s",
-                         (user_id, None, None)
-                     )
-                     # ------------------------------------------------
-                else:
-                    # --- *** NEW: Save extracted text to DATABASE *** ---
+                    print(f"Warning: Issue extracting text from {filename}: {extracted_text}")
+                    # Save NULL to the text table
                     cursor.execute(
                         "INSERT INTO extracted_resume_text (user_id, extracted_text) VALUES (%s, %s) ON DUPLICATE KEY UPDATE extracted_text = %s",
-                        (user_id, extracted_text, extracted_text)
+                        (user_id, None, None)
+                    )
+                else:
+                    # Save extracted text to DATABASE
+                    cursor.execute(
+                        "INSERT INTO extracted_resume_text (user_id, extracted_text) VALUES (%s, %s) ON DUPLICATE KEY UPDATE extracted_text = %s",
+                        (user_id, extracted_text, extracted_text)   
                     )
                     print(f"Saved extracted text to DATABASE for user {user_id}")
-                    # --- *** REMOVED writing text to file *** ---
-                    new_resume_processed = True
+                    # --- REMOVED: new_resume_processed = True (moved up) ---
+
             except Exception as file_error:
                 print(f"❌ Error processing uploaded resume file: {file_error}")
                 traceback.print_exc()
@@ -151,8 +156,8 @@ def update_user_details():
         if 'id' in existing_details:
             query = """
                 UPDATE user_details SET dob=%s, place=%s, degree=%s, stream=%s,
-                       skills=%s, domain=%s, college=%s, year=%s,
-                       resume_path=%s
+                                skills=%s, domain=%s, college=%s, year=%s,
+                                resume_path=%s
                 WHERE user_id=%s
             """
             params = (
@@ -176,7 +181,7 @@ def update_user_details():
         cursor.execute(query, params)
         conn.commit()
         # This log will now show the path that was *actually* saved
-        print(f"✅ Successfully saved user_details for user {user_id}. extracted_path: {updated_data['extracted_path']}")
+        print(f"✅ Successfully saved user_details for user {user_id}.")
 
         # Trigger Skill Extraction in background if new resume was processed
         if new_resume_processed and trigger_skill_extraction:
@@ -210,11 +215,11 @@ def extract_resume_text(file_path):
             for page in reader.pages:
                 extracted_text += page.extract_text() or "" # Handle pages that might return None
             if not extracted_text.strip():
-                 extracted_text = "Could not extract text (PDF might be image-based or empty)."
+                extracted_text = "Could not extract text (PDF might be image-based or empty)."
         elif file_path:
-             extracted_text = "Unsupported file format (only PDF supported)."
+            extracted_text = "Unsupported file format (only PDF supported)."
         else:
-             extracted_text = "No file path provided."
+            extracted_text = "No file path provided."
     except Exception as e:
         print(f"Error during PDF text extraction ({file_path}): {e}")
         extracted_text = f"Error extracting resume: {e}"

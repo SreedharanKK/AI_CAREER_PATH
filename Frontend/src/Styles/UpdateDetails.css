@@ -168,3 +168,7 @@ body {
   from { opacity: 0; transform: translateY(20px); } 
   to { opacity: 1; transform: translateY(0); } 
 }
+.update-form select option {
+  background-color: #1A0F30; /* A dark purple, matching your theme */
+  color: #E0E0E0; /* Light text for the options */
+}
