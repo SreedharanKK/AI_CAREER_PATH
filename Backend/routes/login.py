@@ -86,16 +86,6 @@ def verify_otp():
         cursor.execute("UPDATE users_auth SET otp = NULL, otp_expiry = NULL WHERE email = %s", (email,))
         conn.commit()
 
-        # --- 2. THE FIX: RUN SKILL EXTRACTION IN A BACKGROUND THREAD ---
-        # This creates a new thread to run our slow function.
-        # The 'args' tuple passes the user_id to the function.
-        extraction_thread = threading.Thread(
-            target=trigger_skill_extraction, 
-            args=(record["id"],)
-        )
-        # This starts the thread. The code below will NOT wait for it to finish.
-        extraction_thread.start()
-
         # ✅ Generate JWT
         token = jwt.encode(
             {"user_id": record["id"], "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=2)},

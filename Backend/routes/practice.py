@@ -460,6 +460,90 @@ def explain_practice_feedback():
         traceback.print_exc()
         return jsonify({"error": "An unexpected error occurred during AI explanation."}), 500
 
+def _get_score_from_status(status):
+    if not status:
+        return 2 # Default for unknown
+    status_lower = status.lower()
+    if 'correct' in status_lower:
+        return 10
+    if 'partial' in status_lower:
+        return 5
+    if 'issue' in status_lower or 'incorrect' in status_lower:
+        return 3
+    if 'error' in status_lower:
+        return 0
+    return 2
+
+@practice_bp.route('/practice/weakest-skill', methods=['GET'])
+def get_weakest_skill():
+    """
+    Analyzes the user's practice history to find the skill
+    with the lowest average score.
+    """
+    token = request.cookies.get("token")
+    if not token: 
+        return jsonify({"error": "Authentication required."}), 401
+    try:
+        user_data = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        user_id = user_data["user_id"]
+    except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
+        return jsonify({"error": "Invalid or expired session."}), 401
+
+    conn = None
+    cur = None
+    try:
+        conn = get_db_connection()
+        if not conn: 
+            return jsonify({"error": "Database connection failed."}), 500
+        
+        cur = conn.cursor(dictionary=True)
+
+        # This SQL query does all the work:
+        # 1. Maps text status to a numerical score
+        # 2. Groups by skill
+        # 3. Calculates the average score for each skill
+        # 4. Orders by the average score (lowest first)
+        cur.execute("""
+            SELECT 
+                skill, 
+                AVG(
+                    CASE 
+                        WHEN overall_status LIKE '%%Correct%%' THEN 10
+                        WHEN overall_status LIKE '%%Partial%%' THEN 5
+                        WHEN overall_status LIKE '%%Issue%%' THEN 3
+                        WHEN overall_status LIKE '%%Incorrect%%' THEN 3
+                        WHEN overall_status LIKE '%%Error%%' THEN 0
+                        ELSE 2 -- Default score for unknown status
+                    END
+                ) as avg_score
+            FROM practice_history
+            WHERE user_id = %s
+            GROUP BY skill
+            ORDER BY avg_score ASC
+            LIMIT 1
+        """, (user_id,))
+        
+        weakest = cur.fetchone()
+        
+        if not weakest:
+            return jsonify({"weakest_skill": None}), 200 # No history yet
+
+        # Optional: Add a threshold, e.g., don't show "weakest" if all scores are > 8
+        if weakest['avg_score'] > 8.0:
+            print(f"User {user_id} is performing well in all skills. No weakest skill to show.")
+            return jsonify({"weakest_skill": None}), 200
+
+        print(f"ℹ️ Found weakest skill for user {user_id}: {weakest['skill']} (Avg Score: {weakest['avg_score']})")
+        return jsonify({"weakest_skill": weakest['skill']}), 200
+
+    except Exception as e:
+        print(f"❌ Error fetching weakest skill for user {user_id}: {e}")
+        traceback.print_exc()
+        return jsonify({"error": "An internal server error occurred fetching practice stats."}), 500
+    finally:
+        if cur: cur.close()
+        if conn: conn.close()
+
 # --- /practice/history route (Unchanged) ---
 @practice_bp.route('/practice/history', methods=['GET'])
 def get_practice_history():
