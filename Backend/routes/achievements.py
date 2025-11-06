@@ -3,16 +3,16 @@ import jwt
 import json
 from db_config import get_db_connection
 from config import SECRET_KEY
+import traceback # Import for error logging
 
 achievements_bp = Blueprint('achievements', __name__)
 
 @achievements_bp.route('/achievements', methods=['GET'])
 def get_achievements():
     """
-    Gathers all of a user's achievements: completed roadmap courses with scores,
-    detailed quiz history, and the latest skill gap analysis.
+    Gathers all of a user's achievements: completed roadmap courses,
+    skill gap analysis history, and practice history.
     """
-    # --- Securely identify the user ---
     token = request.cookies.get("token")
     if not token:
         return jsonify({"error": "Authentication required."}), 401
@@ -30,11 +30,12 @@ def get_achievements():
     try:
         achievements = {
             "completed_courses": [],
-            "skill_analyses": []
+            "skill_analyses": [],
+            "practice_history": [], # --- NEW ---
+            "practice_skill_count": 0 # --- NEW ---
         }
 
         # --- 1. Fetch Completed Roadmap Courses and Quiz History ---
-        # This query joins all necessary tables to get course titles, scores, and detailed quiz data
         cur.execute("""
             SELECT 
                 r.domain, 
@@ -70,11 +71,47 @@ def get_achievements():
                 "recommendations": json.loads(analysis['recommended_courses']) if analysis['recommended_courses'] else [],
                 "date": analysis['created_at'].strftime('%d %b %Y')
             })
+            
+        # --- 3. NEW: Fetch Practice History ---
+        cur.execute("""
+            SELECT id, skill, difficulty, overall_status, attempted_at, question_data, user_code, ai_analysis
+            FROM practice_history
+            WHERE user_id = %s
+            ORDER BY attempted_at DESC
+            LIMIT 5 
+        """, (user_id,))
+        
+        practice_attempts = cur.fetchall()
+        practiced_skills = set()
+        
+        for attempt in practice_attempts:
+            achievements["practice_history"].append({
+                "id": attempt['id'],
+                "skill": attempt['skill'],
+                "difficulty": attempt['difficulty'],
+                "status": attempt['overall_status'],
+                "date": attempt['attempted_at'].strftime('%d %b %Y'),
+                # We need to re-serialize the JSON for the modal
+                "details": {
+                    "skill": attempt['skill'],
+                    "difficulty": attempt['difficulty'],
+                    "question_data": json.loads(attempt['question_data']) if attempt['question_data'] else None,
+                    "user_code": attempt['user_code'],
+                    "ai_analysis": json.loads(attempt['ai_analysis']) if attempt['ai_analysis'] else None,
+                    "attempted_at": attempt['attempted_at'].strftime('%d %b %Y, %I:%M %p')
+                }
+            })
+            practiced_skills.add(attempt['skill']) # Add to set for unique count
+            
+        # --- 4. NEW: Add the count of unique skills practiced ---
+        achievements["practice_skill_count"] = len(practiced_skills)
+        
 
         return jsonify(achievements), 200
 
     except Exception as e:
         print(f"❌ Error fetching achievements: {e}")
+        traceback.print_exc()
         return jsonify({"error": "An internal server error occurred."}), 500
     finally:
         cur.close()

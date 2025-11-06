@@ -18,6 +18,11 @@ except ImportError:
     print("⚠️ WARNING: utils.skill_extractor.py not found or cannot be imported. Skill extraction on resume update will be skipped.")
     trigger_skill_extraction = None # Set to None if import fails
 # --------------------------------------------------
+try:
+    from routes.news_feed import clear_news_cache
+except ImportError:
+    print("⚠️ WARNING: Could not import clear_news_cache. Cache won't be cleared on profile update.")
+    clear_news_cache = None
 
 user_details_bp = Blueprint("user_details", __name__)
 
@@ -182,6 +187,9 @@ def update_user_details():
         conn.commit()
         # This log will now show the path that was *actually* saved
         print(f"✅ Successfully saved user_details for user {user_id}.")
+        if clear_news_cache:
+            clear_news_cache(user_id)
+            print(f"✅ Cleared news cache for user {user_id} after profile update.")
 
         # Trigger Skill Extraction in background if new resume was processed
         if new_resume_processed and trigger_skill_extraction:
