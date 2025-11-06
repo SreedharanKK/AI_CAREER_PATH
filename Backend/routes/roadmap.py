@@ -7,6 +7,12 @@ from config import SECRET_KEY
 from api_config import gemini_model
 from google.api_core.exceptions import ResourceExhausted
 
+try:
+    from routes.news_feed import clear_news_cache
+except ImportError:
+    print("⚠️ WARNING: Could not import clear_news_cache. Cache won't be cleared on roadmap update.")
+    clear_news_cache = None
+
 roadmap_bp = Blueprint('roadmap', __name__)
 
 # --- NEW: Helper function to calculate completion percentage ---
@@ -275,6 +281,9 @@ def generate_roadmap():
         conn.commit()
         
         roadmap_id = cur.lastrowid # Get the ID of the new roadmap
+        if clear_news_cache:
+            clear_news_cache(user_id)
+            print(f"✅ Cleared news cache for user {user_id} after new roadmap generation.")
 
         # Apply initial progress (unlock first step) and return
         print(f"✅ Successfully generated and saved new roadmap (ID: {roadmap_id})")
