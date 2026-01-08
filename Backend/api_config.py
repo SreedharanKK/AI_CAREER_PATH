@@ -18,8 +18,8 @@ genai.configure(api_key=GEMINI_API_KEY)
 # --- Initialize the Gemini Model ---
 # Use 'gemini-pro' as it is the standard and most stable model for this task.
 try:
-    gemini_model = genai.GenerativeModel('gemini-2.5-pro')
-    print("✅ Gemini Model initialized successfully with 'gemini-2.5-pro'.")
+    gemini_model = genai.GenerativeModel('gemini-2.5-flash')
+    print("✅ Gemini Model initialized successfully with 'gemini-2.5-flash'.")
 except Exception as e:
     print(f"❌ Error initializing Gemini Model: {e}")
     gemini_model = None
