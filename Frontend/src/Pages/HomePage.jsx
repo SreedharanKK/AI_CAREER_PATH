@@ -108,8 +108,8 @@ export default function HomePage() {
     const handleLoginSubmit = async (e) => {
         e.preventDefault();
         setError(null); 
-        const email = e.target.elements[0].value;
-        const password = e.target.elements[1].value;
+        const email = e.target.loginEmail.value;
+        const password = e.target.loginPassword.value;;
         // --- setLoginEmail(email) line removed ---
 
         // Call the modified /login route
