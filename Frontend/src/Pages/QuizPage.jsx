@@ -1,163 +1,69 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import AnimatedPage from '../hooks/AnimatedPage';
-import '../Styles/QuizPage.css'; // Assuming you have QuizPage.css styles
+import '../Styles/QuizPage.css';
 import { useApi } from '../hooks/useApi';
-import useParticleBackground from '../hooks/UseParticleBackground'; // Ensure correct capitalization if needed
-import toast from 'react-hot-toast'; // Import toast
-
-// --- NEW IMPORTS ---
+import useParticleBackground from '../hooks/UseParticleBackground';
+import toast from 'react-hot-toast';
 import Confetti from 'react-confetti';
-import { useWindowSize } from 'react-use'; // Gets screen dimensions
-// ---------------------
+import { useWindowSize } from 'react-use';
+import { AlertTriangle, Maximize } from 'lucide-react'; // Import icons
 
-// --- *** UPDATED: Helper function for custom confetti shapes *** ---
-// This function is called for each confetti piece
+// --- Helper function for confetti (Unchanged) ---
 const drawCustomShape = (context) => {
-    const baseSize = 8; // Base size for most shapes
-    const shapeType = Math.floor(Math.random() * 6); // 0-5 for different shapes
-
-    context.beginPath(); // Always start a new path
-
+    const baseSize = 8;
+    const shapeType = Math.floor(Math.random() * 6);
+    context.beginPath();
     switch (shapeType) {
-        case 0: // Rectangle/Strip
+        case 0:
             const rectWidth = baseSize + Math.random() * baseSize * 2;
             const rectHeight = baseSize / 2 + Math.random() * baseSize;
             context.rect(-rectWidth / 2, -rectHeight / 2, rectWidth, rectHeight);
-            context.fill();
-            break;
-
-        case 1: // Circle/Dot
+            context.fill(); break;
+        case 1:
             const circleRadius = baseSize / 2 + Math.random() * baseSize / 2;
             context.arc(0, 0, circleRadius, 0, 2 * Math.PI);
-            context.fill();
-            break;
-
-        case 2: // Star
-            const starOuterRadius = baseSize * (1 + Math.random() * 0.5);
-            const starInnerRadius = starOuterRadius / 2.5;
-            const spikes = 5;
-            let rotation = (Math.PI / 2) * 3;
-            const step = Math.PI / spikes;
-
-            context.moveTo(0, -starOuterRadius);
-            for (let i = 0; i < spikes; i++) {
-                context.lineTo(Math.cos(rotation) * starOuterRadius, Math.sin(rotation) * starOuterRadius);
-                rotation += step;
-                context.lineTo(Math.cos(rotation) * starInnerRadius, Math.sin(rotation) * starInnerRadius);
-                rotation += step;
-            }
-            context.closePath();
-            context.fill();
-            break;
-
-        case 3: // Triangle
-            const triSize = baseSize * (1 + Math.random() * 0.5);
-            context.moveTo(0, -triSize / 2);
-            context.lineTo(triSize / 2, triSize / 2);
-            context.lineTo(-triSize / 2, triSize / 2);
-            context.closePath();
-            context.fill();
-            break;
-
-        case 4: // Curled Ribbon/Strip (simplistic representation)
-            const ribbonLength = baseSize * 2 + Math.random() * baseSize * 3;
-            const ribbonWidth = baseSize / 3;
-            const curveFactor = Math.random() * 0.5 + 0.5;
-
-            context.moveTo(-ribbonLength / 2, -ribbonWidth / 2);
-            context.bezierCurveTo(
-                -ribbonLength / 4, -ribbonWidth * curveFactor,
-                ribbonLength / 4, ribbonWidth * curveFactor,
-                ribbonLength / 2, ribbonWidth / 2
-            );
-            context.lineTo(ribbonLength / 2, ribbonWidth / 2 + ribbonWidth); // Thicken the strip
-            context.bezierCurveTo(
-                ribbonLength / 4, ribbonWidth * curveFactor + ribbonWidth,
-                -ribbonLength / 4, -ribbonWidth * curveFactor + ribbonWidth,
-                -ribbonLength / 2, -ribbonWidth / 2 + ribbonWidth
-            );
-            context.closePath();
-            context.fill();
-            break;
-
-        case 5: // Swirl/Spiral (simplistic)
-            const spiralRadius = baseSize * (0.8 + Math.random() * 0.7);
-            const turns = 1.5 + Math.random();
-            const startAngle = 0;
-            const endAngle = Math.PI * 2 * turns;
-            const centerX = 0;
-            const centerY = 0;
-
-            // --- *** FIX 1: Define its own line width *** ---
-            const swirlLineWidth = baseSize / 4;
-            context.lineWidth = swirlLineWidth;
-            
-            // --- *** FIX 2: Copy the fill style to the stroke style *** ---
-            context.strokeStyle = context.fillStyle;
-
-            context.moveTo(centerX, centerY);
-            for (let i = 0; i <= 100; i++) {
-                const angle = startAngle + (endAngle - startAngle) * (i / 100);
-                const r = spiralRadius * (i / 100);
-                const x = centerX + Math.cos(angle) * r;
-                const y = centerY + Math.sin(angle) * r;
-                context.lineTo(x, y);
-            }
-            
-            context.stroke(); // Use stroke for lines
-            context.closePath(); // Close the path
-            break;
-
+            context.fill(); break;
         default:
-            // Fallback to a basic rectangle if somehow shapeType is out of range
             context.rect(-baseSize / 2, -baseSize / 2, baseSize, baseSize);
-            context.fill();
-            break;
+            context.fill(); break;
     }
 };
-// ------------------------------------------------------------------
-
 
 export default function QuizPage() {
     const location = useLocation();
     const navigate = useNavigate();
-
-    console.log("QuizPage location.state:", location.state);
     const { step, roadmapId, stageIndex, stepIndex } = location.state || {};
 
     const [quizTitle, setQuizTitle] = useState('');
     const [quizQuestions, setQuizQuestions] = useState(null);
     const [userAnswers, setUserAnswers] = useState({});
     const [submissionResult, setSubmissionResult] = useState(null);
-    
-    // --- NEW STATE for Confetti ---
     const [showConfetti, setShowConfetti] = useState(false);
-    // ------------------------------
+    
+    // --- NEW: Anti-Cheat State ---
+    const [isQuizStarted, setIsQuizStarted] = useState(false); // Controls visibility of questions
+    const [violationCount, setViolationCount] = useState(0);
+    const [isTerminated, setIsTerminated] = useState(false);
     
     const { apiFetch, isLoading: isApiLoading, error, setError } = useApi();
     const canvasRef = useRef(null);
     useParticleBackground(canvasRef);
-    
-    // --- NEW: Get window size for confetti ---
     const { width, height } = useWindowSize();
-    // -----------------------------------------
 
+    // --- 1. Fetch Quiz Data ---
     useEffect(() => {
         let isMounted = true;
         setError(null);
         setSubmissionResult(null);
         setQuizQuestions(null);
-        setShowConfetti(false); // Reset confetti on new quiz load
+        setShowConfetti(false);
 
         if (!step || roadmapId === undefined || stageIndex === undefined || stepIndex === undefined) {
-            console.error("Quiz details missing in location state:", { step, roadmapId, stageIndex, stepIndex });
-            setError("Quiz details are missing. Please return to the roadmap and try again.");
-            setQuizQuestions([]); // Set to empty array to stop loading
+            setError("Quiz details are missing. Please return to the roadmap.");
+            setQuizQuestions([]);
             return;
         }
-
-        console.log("Fetching quiz for:", { title: step.title, roadmapId, stageIndex, stepIndex });
 
         const fetchQuiz = async () => {
             const data = await apiFetch("/api/user/generate-quiz", {
@@ -170,143 +76,189 @@ export default function QuizPage() {
 
             if (!isMounted) return;
 
-            console.log("API response for /generate-quiz:", data);
-
             if (data && data.questions && data.questions.length > 0) {
                 setQuizTitle(data.quiz_title || `Quiz for ${step.title}`);
                 setQuizQuestions(data.questions);
             } else if (!error) {
-                console.error("API returned null or invalid quiz data, but no explicit error.", data);
-                setError("Failed to load quiz questions. The format might be incorrect or the quiz is empty.");
+                setError("Failed to load quiz questions.");
                 setQuizQuestions([]);
-            } else {
-                 console.log("useApi hook set an error:", error);
-                 setQuizQuestions([]);
             }
         };
 
         fetchQuiz();
-        
         return () => { isMounted = false; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [step, roadmapId, stageIndex, stepIndex]); // Removed apiFetch and setError to stabilize
+    }, [step, roadmapId, stageIndex, stepIndex, apiFetch, setError]);
 
-
+    // --- 2. Handle Answers ---
     const handleAnswerChange = (questionText, answer) => {
-        setUserAnswers(prev => ({
-            ...prev,
-            [questionText]: answer
-        }));
+        setUserAnswers(prev => ({ ...prev, [questionText]: answer }));
     };
 
-    const handleSubmitQuiz = async () => {
-       if (!quizQuestions || quizQuestions.length === 0) {
-           setError("Cannot submit: Quiz questions are not loaded.");
-           return;
-       }
+    // --- 3. Submit Quiz (Wrapped in useCallback to use in Event Listeners) ---
+    const handleSubmitQuiz = useCallback(async (forced = false) => {
+       if (!quizQuestions || quizQuestions.length === 0) return;
 
-        const answersArray = Object.keys(userAnswers).map(qText => ({
-            question_text: qText,
-            answer: userAnswers[qText]
-        }));
+       // If forced (violation), we might submit incomplete answers, which is fine (counts as 0 score)
+       const answersArray = Object.keys(userAnswers).map(qText => ({
+           question_text: qText,
+           answer: userAnswers[qText]
+       }));
 
-        const payload = {
-            user_answers: answersArray,
-            quiz_data: {
-                quiz_title: quizTitle,
-                questions: quizQuestions,
-            },
-            roadmap_id: roadmapId,
-            stage_index: stageIndex,
-            step_index: stepIndex
-        };
-
-        const data = await apiFetch("/api/user/submit-quiz", {
-            method: "POST",
-            body: JSON.stringify(payload)
-        });
-
-        if (data) {
-            setSubmissionResult(data);
-            setQuizQuestions(null); // Clear questions after submission to show results
-            
-            // --- *** NEW: Trigger effects on result *** ---
-            if (data.passed && data.is_roadmap_complete) {
-               // Show confetti and a special "Congrats" toast!
-               setShowConfetti(true);
-               toast.success("Congratulations! You've completed the entire roadmap!", {
-                   duration: 5000,
-                   icon: '🎉',
-               });
-           } else if (data.passed) {
-               // This is the original confetti logic for a normal pass
-               setShowConfetti(true);
+       // Add remaining unanswered questions as empty to ensure backend processes score correctly
+       quizQuestions.forEach(q => {
+           if (!userAnswers[q.question_text]) {
+               answersArray.push({ question_text: q.question_text, answer: "" });
            }
-            // ---------------------------------------------
+       });
+
+       const payload = {
+           user_answers: answersArray,
+           quiz_data: { quiz_title: quizTitle, questions: quizQuestions },
+           roadmap_id: roadmapId,
+           stage_index: stageIndex,
+           step_index: stepIndex
+       };
+
+       const data = await apiFetch("/api/user/submit-quiz", {
+           method: "POST",
+           body: JSON.stringify(payload)
+       });
+
+       if (data) {
+           setSubmissionResult(data);
+           setQuizQuestions(null);
+           setIsQuizStarted(false); // Stop monitoring
+           document.exitFullscreen().catch(e => console.log(e)); // Exit full screen
+
+           if (forced) {
+               setIsTerminated(true); // Show termination message
+           } else if (data.passed) {
+               if (data.is_roadmap_complete) {
+                   setShowConfetti(true);
+                   toast.success("Roadmap Completed! 🎉", { duration: 5000 });
+               } else {
+                   setShowConfetti(true);
+               }
+           }
+       }
+    }, [quizQuestions, userAnswers, quizTitle, roadmapId, stageIndex, stepIndex, apiFetch]);
+
+    // --- 4. NEW: Start Quiz & Enter Full Screen ---
+    const handleStartQuiz = () => {
+        const elem = document.documentElement;
+        if (elem.requestFullscreen) {
+            elem.requestFullscreen().then(() => {
+                setIsQuizStarted(true);
+                toast("Quiz Started! Do not switch tabs or exit full screen.", { icon: '⚠️' });
+            }).catch(err => {
+                toast.error("Full screen is required to take the quiz.");
+            });
         }
     };
 
-   // Determine if all questions have been answered
-   const allQuestionsAnswered = quizQuestions && Array.isArray(quizQuestions) && quizQuestions.length > 0 &&
-       quizQuestions.every(q =>
-           q && q.question_text &&
-           userAnswers.hasOwnProperty(q.question_text) &&
-           userAnswers[q.question_text]?.trim() !== ''
-       );
+    // --- 5. NEW: Monitor Violations ---
+    useEffect(() => {
+        if (!isQuizStarted || submissionResult) return;
+
+        const handleVisibilityChange = () => {
+            if (document.hidden) {
+                recordViolation("Tab switching detected!");
+            }
+        };
+
+        const handleFullScreenChange = () => {
+            if (!document.fullscreenElement) {
+                recordViolation("Full screen exited!");
+            }
+        };
+
+        const recordViolation = (msg) => {
+            setViolationCount(prev => {
+                const newCount = prev + 1;
+                if (newCount >= 3) {
+                    toast.error("Max violations reached. Submitting quiz...");
+                    handleSubmitQuiz(true); // Forced submit
+                    return newCount;
+                }
+                toast.error(`Warning ${newCount}/3: ${msg}`);
+                return newCount;
+            });
+        };
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+        document.addEventListener("fullscreenchange", handleFullScreenChange);
+        // Standard Webkit/Moz listeners for older browsers support
+        document.addEventListener("webkitfullscreenchange", handleFullScreenChange);
+
+        return () => {
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
+            document.removeEventListener("fullscreenchange", handleFullScreenChange);
+            document.removeEventListener("webkitfullscreenchange", handleFullScreenChange);
+        };
+    }, [isQuizStarted, submissionResult, handleSubmitQuiz]);
+
+
+    // Determine if all questions have been answered (for manual submit button)
+    const allQuestionsAnswered = quizQuestions && Array.isArray(quizQuestions) && quizQuestions.length > 0 &&
+       quizQuestions.every(q => userAnswers.hasOwnProperty(q.question_text) && userAnswers[q.question_text]?.trim() !== '');
 
 
     return (
         <AnimatedPage>
             <>
-                {/* --- *** UPDATED: Confetti Component *** --- */}
-                {/* It sits at the top level, overlays everything */}
                 {showConfetti && (
-                    <Confetti
-                        width={width}
-                        height={height}
-                        recycle={false} // Run once
-                        numberOfPieces={1500} // Increased pieces for a fuller look
-                        onConfettiComplete={() => setShowConfetti(false)} // Clean up
-                        drawShape={drawCustomShape} // <-- Use our custom shapes
-                        confettiSource={{
-                            x: 0,
-                            y: 0, // FIXED: Start from the very top (y: 0)
-                            w: width,
-                            h: 0 // Emitter is a line
-                        }}
-                        initialVelocityY={20} // Increased initial velocity
-                        gravity={0.3} // Adjusted gravity
-                    />
+                    <Confetti width={width} height={height} recycle={false} numberOfPieces={1500} onConfettiComplete={() => setShowConfetti(false)} drawShape={drawCustomShape} />
                 )}
-                {/* -------------------------------------- */}
-            
                 <canvas ref={canvasRef} className="live-background-canvas"></canvas>
 
                 <div className="quiz-container">
                     
-                    {/* === Error Display === */}
+                    {/* Error Display */}
                     {error && !submissionResult && (
                         <div className="feedback-card">
                             <p className="error-message">{error}</p>
-                            {error.includes("busy") && <p>Please wait a moment and try again.</p>}
                             <button className="quiz-btn" onClick={() => navigate('/Roadmap')}>Return to Roadmap</button>
                         </div>
                     )}
 
-                    {/* === Loading Display === */}
+                    {/* Loading Display */}
                     {isApiLoading && !error && !submissionResult && quizQuestions === null && (
-                         <div className="feedback-card">
-                             <div className="spinner"></div>
-                             <p>{quizQuestions ? 'Submitting your answers...' : 'Loading your quiz...'}</p>
-                         </div>
+                        <div className="feedback-card">
+                            <div className="spinner"></div>
+                            <p>Loading your quiz...</p>
+                        </div>
                     )}
 
-                    {/* === Quiz Display === */}
-                    {!isApiLoading && !error && !submissionResult && Array.isArray(quizQuestions) && quizQuestions.length > 0 && (
+                    {/* --- NEW: Warning / Start Overlay --- */}
+                    {!isApiLoading && !error && !submissionResult && !isQuizStarted && quizQuestions && quizQuestions.length > 0 && (
+                        <div className="quiz-start-overlay">
+                            <div className="warning-icon-container">
+                                <AlertTriangle size={60} color="#ffca3a" />
+                            </div>
+                            <h2>Important!</h2>
+                            <p className="warning-text">
+                                This quiz requires <strong>Full Screen</strong> mode.
+                            </p>
+                            <ul className="rules-list">
+                                <li>Do not switch tabs.</li>
+                                <li>Do not exit full screen.</li>
+                                <li><strong>3 Violations</strong> will result in immediate termination and cooldown.</li>
+                            </ul>
+                            <button className="quiz-submit-btn start-btn" onClick={handleStartQuiz}>
+                                <Maximize size={20} /> Enter Full Screen & Start
+                            </button>
+                        </div>
+                    )}
+
+                    {/* --- Quiz Questions (Only visible if Started) --- */}
+                    {isQuizStarted && !submissionResult && Array.isArray(quizQuestions) && (
                         <>
                             <div className="quiz-header">
-                                <h1 className="quiz-title">{quizTitle || `Quiz for ${step?.title || 'Current Step'}`}</h1>
-                                {step?.title && <p className="quiz-description">Test your knowledge on "{step.title}"</p>}
+                                <div className="violation-badge" title="Warnings">
+                                    ⚠️ {violationCount}/3
+                                </div>
+                                <h1 className="quiz-title">{quizTitle}</h1>
+                                {step?.title && <p className="quiz-description">Test on "{step.title}"</p>}
                             </div>
 
                             <div className="quiz-questions-list">
@@ -317,71 +269,47 @@ export default function QuizPage() {
                                             <div className="options-grid">
                                                 {q.options.map((option, oIndex) => (
                                                     <label key={oIndex} className={`option-label ${userAnswers[q.question_text] === option ? 'selected' : ''}`}>
-                                                        <input
-                                                            type="radio"
-                                                            name={`question-${qIndex}`}
-                                                            value={option}
-                                                            checked={userAnswers[q.question_text] === option}
-                                                            onChange={() => handleAnswerChange(q.question_text, option)}
-                                                        />
+                                                        <input type="radio" name={`question-${qIndex}`} value={option} checked={userAnswers[q.question_text] === option} onChange={() => handleAnswerChange(q.question_text, option)} />
                                                         <span>{option}</span>
                                                     </label>
                                                 ))}
                                             </div>
                                         )}
                                         {q?.type === 'short-answer' && (
-                                            <textarea
-                                                className="short-answer-input"
-                                                placeholder="Type your answer here..."
-                                                value={userAnswers[q.question_text] || ''}
-                                                onChange={(e) => handleAnswerChange(q.question_text, e.target.value)}
-                                            />
+                                            <textarea className="short-answer-input" placeholder="Type your answer here..." value={userAnswers[q.question_text] || ''} onChange={(e) => handleAnswerChange(q.question_text, e.target.value)} />
                                         )}
                                         {q?.type === 'coding' && (
-                                            <textarea
-                                                className="coding-answer-input"
-                                                placeholder="Write your code here..."
-                                                value={userAnswers[q.question_text] || ''}
-                                                onChange={(e) => handleAnswerChange(q.question_text, e.target.value)}
-                                            />
+                                            <textarea className="coding-answer-input" placeholder="Write your code here..." value={userAnswers[q.question_text] || ''} onChange={(e) => handleAnswerChange(q.question_text, e.target.value)} />
                                         )}
                                     </div>
                                 ))}
                             </div>
 
-                            <button
-                                className="quiz-submit-btn"
-                                onClick={handleSubmitQuiz}
-                                disabled={isApiLoading || !allQuestionsAnswered}
-                                title={!allQuestionsAnswered ? "Please answer all questions before submitting" : "Submit your answers"}
-                            >
+                            <button className="quiz-submit-btn" onClick={() => handleSubmitQuiz(false)} disabled={isApiLoading || !allQuestionsAnswered} title={!allQuestionsAnswered ? "Please answer all questions" : "Submit"}>
                                 {isApiLoading ? 'Submitting...' : 'Submit Quiz'}
                             </button>
                         </>
                     )}
 
-                    {/* === Handle Empty Quiz Case === */}
-                    {!isApiLoading && !error && !submissionResult && Array.isArray(quizQuestions) && quizQuestions.length === 0 && (
-                         <div className="feedback-card">
-                             <p>No quiz questions were generated for this topic.</p>
-                             <button className="quiz-btn" onClick={() => navigate('/Roadmap')}>Return to Roadmap</button>
-                         </div>
-                    )}
-
-                    {/* === Submission Results Display === */}
-                    {submissionResult && ( // No need to check !error here, results override errors
+                    {/* --- Submission Results / Termination Screen --- */}
+                    {submissionResult && ( 
                         <div className="quiz-results-card">
+                            {isTerminated && (
+                                <div className="termination-alert">
+                                    <h3>🚫 Quiz Terminated</h3>
+                                    <p>You exceeded the maximum number of violations (tab switching or exiting full screen).</p>
+                                </div>
+                            )}
+
                             <h2 className={`results-title ${submissionResult.passed ? 'passed' : 'failed'}`}>
                                 {submissionResult.passed ? '🎉 Quiz Passed!' : '😔 Quiz Failed'}
                             </h2>
 
-                            {/* --- *** NEW: Consolation Animation *** --- */}
-                            {!submissionResult.passed && (
+                            {!submissionResult.passed && !isTerminated && (
                                 <div className="consolation-animation">
                                     <span>Don't give up! Review your answers and try again.</span>
                                 </div>
                             )}
-                            {/* -------------------------------------- */}
 
                             <p className="results-score">Your Score: {submissionResult.score !== undefined ? submissionResult.score.toFixed(0) : 'N/A'}%</p>
                             
@@ -399,9 +327,8 @@ export default function QuizPage() {
                             <button className="quiz-btn" onClick={() => navigate('/Roadmap')}>Return to Roadmap</button>
                         </div>
                     )}
-
                 </div>
-                </>
-            </AnimatedPage>
+            </>
+        </AnimatedPage>
     );
 }

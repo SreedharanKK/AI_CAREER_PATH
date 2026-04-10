@@ -201,3 +201,230 @@
     .profile-details p { font-size: 1rem; }
     .update-btn, .resume-btn, .secondary-action-btn { font-size: 1rem; padding: 12px; }
 }
+
+.analytics-section {
+    margin-bottom: 2.5rem;
+    animation: fadeIn 0.8s ease-out;
+}
+
+.analytics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.analytics-card {
+    background: rgba(23, 11, 49, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 1.5rem;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: transform 0.3s ease;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.analytics-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(157, 78, 221, 0.3);
+}
+
+.chart-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.chart-header h4 {
+    font-size: 1.1rem;
+    color: #FFFFFF;
+    font-weight: 600;
+}
+
+.chart-icon {
+    font-size: 1.2rem;
+}
+
+.chart-icon.purple { color: #9D4EDD; }
+.chart-icon.cyan { color: #4CC9F0; }
+.chart-icon.pink { color: #F72585; }
+
+.chart-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Recharts Customizations */
+.recharts-default-tooltip {
+    border: none !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+}
+
+.recharts-legend-item-text {
+    color: #A0A0B0 !important;
+    font-size: 0.85rem !important;
+}
+
+/* Adjust standard cards grid to be slightly smaller when analytics are present */
+.card-grid.dashboard-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+/* Fix for Sidebar buttons alignment */
+.sidebar-btn {
+    text-align: left;
+    justify-content: flex-start;
+}
+
+/* Responsive Analytics */
+@media (max-width: 1200px) {
+    .analytics-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .analytics-grid {
+        grid-template-columns: 1fr;
+    }
+    .analytics-card {
+        padding: 1rem;
+    }
+}
+/* --- OTP Verification Section --- */
+
+.otp-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    animation: fadeIn 0.5s ease;
+}
+
+.section-small-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #FFFFFF;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(90deg, #4CC9F0, #4361EE);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.otp-section p {
+    color: #A0A0B0;
+    margin-bottom: 2rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.otp-inputs {
+    display: flex;
+    gap: 0.8rem;
+    justify-content: center;
+    margin-bottom: 2.5rem;
+}
+
+.otp-inputs input {
+    width: 55px;
+    height: 65px;
+    text-align: center;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #FFFFFF;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    outline: none;
+}
+
+.otp-inputs input:focus {
+    border-color: #4CC9F0;
+    background: rgba(76, 201, 240, 0.05);
+    box-shadow: 0 0 20px rgba(76, 201, 240, 0.3);
+    transform: translateY(-3px);
+}
+
+.otp-inputs input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+/* --- Verification Buttons --- */
+
+.btn-success {
+    background: linear-gradient(135deg, #4CC9F0, #4361EE);
+    color: #0B021D;
+    padding: 16px 32px;
+    border: none;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    cursor: pointer;
+    width: 100%;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+}
+
+.btn-success:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(76, 201, 240, 0.4);
+    filter: brightness(1.1);
+}
+
+.btn-success:disabled {
+    background: #2D2D3A;
+    color: #555566;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.05);
+    color: #A0A0B0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 12px 24px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 600;
+    width: 100%;
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.1);
+    color: #FFFFFF;
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Responsive adjustments for mobile */
+@media (max-width: 480px) {
+    .otp-inputs input {
+        width: 45px;
+        height: 55px;
+        font-size: 1.5rem;
+    }
+    
+    .section-small-title {
+        font-size: 1.5rem;
+    }
+}
+
+.cert-icon-sidebar {
+    color: #FFD700; /* Gold color to represent achievement */
+}
+
+/* Optional: if you want a hover effect specifically for this icon */
+.sidebar-btn:hover .cert-icon-sidebar {
+    color: #FFFFFF;
+    filter: drop-shadow(0 0 5px #FFD700);
+}

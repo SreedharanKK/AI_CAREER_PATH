@@ -15,12 +15,17 @@ import PracticePage from './Pages/PracticePage';
 import PracticeQuestionsPage from './Pages/PracticeQuestionsPage';
 import JobHistory from './Pages/JobHistory';
 import WhatsNextCard from './components/WhatsNextCard';
-
+import ProjectIdeas from './Pages/ProjectIdeas';
+import Chatbot from './components/Chatbot';
+import Certificates from './Pages/Certificates';
 
 function AnimatedRoutes() {
   const location = useLocation();
+  const hideChatbotPaths = ["/", "/QuizPage", "/PracticeQuestionsPage"];
+  const showChatbot = !hideChatbotPaths.includes(location.pathname);
 
   return (
+    <>
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<HomePage/>}/>
@@ -36,8 +41,12 @@ function AnimatedRoutes() {
         <Route path='/JobHistory' element={<JobHistory/>}/>
         <Route path='/PracticeQuestionsPage' element={<PracticeQuestionsPage/>}/>
         <Route path='/WhatsNextCard' element={<WhatsNextCard/>}/>
+        <Route path='/ProjectIdeas' element={<ProjectIdeas/>}/>
+        <Route path='/Certificates' element={<Certificates/>}/>
       </Routes>
     </AnimatePresence>
+    {showChatbot && <Chatbot />}
+    </>
   );
 }
 

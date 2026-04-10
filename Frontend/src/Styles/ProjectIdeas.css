@@ -1,0 +1,134 @@
+.projects-page {
+    position: relative;
+    min-height: 100vh;
+    padding: 3rem 1rem;
+    color: #E0E0E0;
+}
+
+.projects-container {
+    position: relative;
+    z-index: 2;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.projects-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.projects-header h1 {
+    font-size: 2.5rem;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 0.5rem;
+}
+
+.back-btn {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: transparent;
+    border: none;
+    color: #ececf3;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 1rem;
+}
+
+.generate-project-btn {
+    margin-top: 1.5rem;
+    padding: 12px 24px;
+    background-color: #7B2CBF;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+.generate-project-btn:hover {
+    background-color: #9D4EDD;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(157, 78, 221, 0.4);
+}
+
+.projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 2rem;
+}
+
+.project-card {
+    background: rgba(11, 2, 29, 0.75);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 16px;
+    padding: 1.5rem;
+    backdrop-filter: blur(10px);
+    transition: transform 0.3s ease;
+}
+.project-card:hover {
+    transform: translateY(-5px);
+    border-color: #7B2CBF;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.difficulty-tag {
+    font-size: 0.8rem;
+    padding: 2px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+.difficulty-tag.beginner { background: #4CC9F0; color: #000; }
+.difficulty-tag.intermediate { background: #F72585; color: #fff; }
+.difficulty-tag.advanced { background: #7209B7; color: #fff; }
+
+.project-date { font-size: 0.8rem; color: #7a6c90; }
+
+.project-card h2 { color: #56CFE1; font-size: 1.4rem; margin-bottom: 0.5rem; }
+.project-desc { color: #ccc; font-size: 0.95rem; margin-bottom: 1rem; line-height: 1.5; }
+
+.tech-stack {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+    color: #A0A0B0;
+}
+
+.tech-tag {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    color: #fff;
+}
+
+.project-steps h4 { margin-bottom: 0.5rem; display: flex; align-items: center; gap: 5px; color: #E0E0E0; }
+.project-steps ul { padding-left: 1.2rem; margin-bottom: 1rem; }
+.project-steps li { color: #B0B0C0; font-size: 0.9rem; margin-bottom: 0.4rem; }
+
+.bonus-challenge {
+    margin-top: auto;
+    background: rgba(247, 37, 133, 0.1);
+    border: 1px dashed #F72585;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    color: #ffca3a;
+}

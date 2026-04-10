@@ -1,0 +1,229 @@
+/* --- Page Layout --- */
+.certs-page-wrapper {
+    min-height: 100vh;
+    background-color: #0b021d;
+    position: relative;
+    padding: 2rem 1.5rem;
+    overflow-x: hidden;
+}
+
+.certs-container {
+    position: relative;
+    z-index: 5;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* --- Header & Navigation Fix --- */
+.certs-page-header {
+    margin-bottom: 3rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.back-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #A0A0B0;
+    padding: 10px 20px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: fit-content;
+    transition: all 0.3s ease;
+}
+
+.back-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    transform: translateX(-5px);
+}
+
+.header-text-group h1 {
+    font-size: 3rem;
+    font-weight: 800;
+    margin: 0;
+    color: #FFFFFF;
+    background: linear-gradient(90deg, #FFFFFF, #4CC9F0);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.certs-subtitle {
+    color: #888;
+    font-size: 1.1rem;
+    margin-top: 10px;
+}
+
+/* --- Empty State Fix --- */
+.empty-cert-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 5rem 2rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(10px);
+}
+
+.empty-icon-wrapper {
+    margin-bottom: 1.5rem;
+    color: rgba(255, 255, 255, 0.1);
+}
+
+.empty-cert-state h2 {
+    color: white;
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+}
+
+.empty-cert-state p {
+    color: #A0A0B0;
+    max-width: 500px;
+    margin: 0 auto 2.5rem;
+    line-height: 1.6;
+}
+
+/* --- Button Fix --- */
+.action-link-btn {
+    background: linear-gradient(90deg, #4CC9F0, #4361EE);
+    border: none;
+    padding: 14px 35px;
+    border-radius: 12px;
+    color: #0b021d;
+    font-weight: 800;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(76, 201, 240, 0.3);
+}
+
+.action-link-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 25px rgba(76, 201, 240, 0.5);
+}
+
+/* --- Masonry Tiles --- */
+.certs-masonry {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 2rem;
+}
+
+.cert-tile {
+    background: rgba(23, 11, 49, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.cert-tile:hover {
+    border-color: #4CC9F0;
+    transform: translateY(-5px);
+}
+
+.cert-tile-body h3 { font-size: 1.1rem; color: #fff; margin: 0; }
+.cert-meta { display: flex; flex-direction: column; gap: 4px; font-size: 0.8rem; color: #666; margin-top: 5px; }
+
+/* --- Formal Document Styles --- */
+.certificate-document {
+    background: #FFFFFF;
+    color: #111;
+    padding: 20px;
+    width: 100%;
+    position: relative;
+}
+
+/* Tier Colors */
+.tier-gold { --tier-color: #d4af37; --glow: rgba(212, 175, 55, 0.3); }
+.tier-silver { --tier-color: #9e9e9e; --glow: rgba(158, 158, 158, 0.3); }
+.tier-bronze { --tier-color: #cd7f32; --glow: rgba(205, 127, 50, 0.3); }
+.tier-certified { --tier-color: #4361ee; --glow: rgba(67, 97, 238, 0.3); }
+
+.cert-border-outer { border: 10px double var(--tier-color); padding: 10px; background: #fff; }
+.cert-border-inner {
+    border: 1px solid var(--tier-color);
+    padding: 4rem 2rem;
+    background: radial-gradient(circle, #ffffff 0%, #fffdf5 100%);
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+}
+
+.cert-watermark {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-25deg);
+    font-size: 8rem; font-weight: 900; color: rgba(0,0,0,0.03); pointer-events: none; z-index: 0;
+}
+
+.main-cert-title { font-family: 'serif'; font-size: 2.2rem; letter-spacing: 3px; color: #333; margin-top: 1rem; }
+.user-display-name { font-family: 'serif'; font-size: 3.5rem; color: #000; border-bottom: 2px double #ddd; display: inline-block; padding: 0 30px; margin: 1rem 0; }
+.domain-display-name { font-family: sans-serif; font-weight: 800; color: var(--tier-color); font-size: 1.5rem; }
+
+/* Footer Layout */
+.cert-footer-section { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 3rem; }
+.footer-col { flex: 1; }
+.left-align { text-align: left; }
+.right-align { text-align: right; }
+
+.info-label { font-size: 0.65rem; color: #999; font-weight: 800; }
+.info-value { font-weight: 700; color: #222; font-size: 0.9rem; }
+
+/* Metallic Seal */
+.footer-seal { flex: 0 0 180px; display: flex; flex-direction: column; align-items: center; }
+.gold-seal-outer {
+    width: 80px; height: 80px; border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, var(--tier-color), #000);
+    border: 3px solid #fff; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 5px 15px var(--glow); margin-bottom: 5px;
+}
+.seal-inner-circle { width: 65px; height: 65px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.4); display: flex; align-items: center; justify-content: center; }
+.seal-letter { color: #fff; font-size: 2rem; font-weight: 900; text-shadow: 1px 1px 2px #000; }
+.seal-caption { font-weight: 800; font-size: 0.8rem; }
+.tier-subtext { font-size: 0.6rem; font-weight: 700; color: #777; }
+
+/* Signature Area */
+.signature-area { border-top: 1px solid #ccc; padding-top: 8px; width: 200px; margin-left: auto; }
+.sig-line { font-family: cursive; font-size: 1.8rem; color: #444; }
+.sig-title { font-size: 0.6rem; font-weight: 700; color: #999; text-transform: uppercase; }
+
+/* --- Modal & Controls --- */
+.cert-modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+    z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 2rem;
+}
+
+.cert-modal-box { max-width: 900px; width: 100%; position: relative; }
+.modal-close-x { position: absolute; top: -40px; right: 0; background: none; border: none; color: #fff; cursor: pointer; }
+
+.modal-controls { display: flex; justify-content: center; gap: 1rem; margin-top: 2rem; }
+.m-btn-cancel { background: #333; color: #fff; border: none; padding: 10px 25px; border-radius: 8px; cursor: pointer; }
+.m-btn-download { background: #4cc9f0; color: #0b021d; border: none; padding: 10px 25px; border-radius: 8px; cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+
+/* --- Print Settings --- */
+@media print {
+    body * { visibility: hidden; }
+    #printable-certificate, #printable-certificate * { visibility: visible; }
+    #printable-certificate { position: fixed; left: 0; top: 0; width: 100vw; height: auto; }
+    .live-background-canvas, .modal-controls, .back-btn { display: none !important; }
+}
+
+@media (max-width: 768px) {
+    .user-display-name { font-size: 2rem; padding: 0 10px; }
+    .cert-footer-section { flex-direction: column; align-items: center; gap: 2rem; }
+    .right-align { text-align: center; }
+    .signature-area { margin: 0 auto; }
+}
