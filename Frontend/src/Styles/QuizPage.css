@@ -36,7 +36,11 @@ canvas[style*="position: fixed"] {
     pointer-events: none; /* Allow clicks to pass through */
 }
 /* ------------------------------------------ */
-
+.no-copy {
+  -webkit-user-select: none; /* Safari */
+  -ms-user-select: none;     /* IE 10 and IE 11 */
+  user-select: none;         /* Standard syntax */
+}
 
 .quiz-container {
     position: relative;
@@ -347,4 +351,110 @@ canvas[style*="position: fixed"] {
     .quiz-header, .quiz-question-card, .quiz-results-card {
         padding: 1.5rem;
     }
+}
+
+/* ... (Keep existing styles) ... */
+
+/* --- Warning Overlay --- */
+.quiz-start-overlay {
+    width: 100%;
+    max-width: 600px;
+    padding: 3rem;
+    background-color: rgba(20, 10, 40, 0.95); /* Darker, focused background */
+    border: 2px solid #ffca3a; /* Warning Yellow */
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    animation: zoomIn 0.4s ease;
+}
+
+.warning-icon-container {
+    margin-bottom: 1.5rem;
+    animation: pulse-warning 2s infinite;
+}
+
+@keyframes pulse-warning {
+    0% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.1); opacity: 1; }
+    100% { transform: scale(1); opacity: 0.8; }
+}
+
+.quiz-start-overlay h2 {
+    color: #ffca3a;
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+.warning-text {
+    font-size: 1.2rem;
+    margin-bottom: 1.5rem;
+    color: #E0E0E0;
+}
+
+.rules-list {
+    text-align: left;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1.5rem;
+    border-radius: 10px;
+    margin-bottom: 2rem;
+    list-style-type: none;
+}
+
+.rules-list li {
+    margin-bottom: 0.8rem;
+    color: #d0d0d0;
+    padding-left: 1.5rem;
+    position: relative;
+}
+
+.rules-list li::before {
+    content: '⚠️';
+    position: absolute;
+    left: 0;
+    font-size: 0.9rem;
+}
+
+.start-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 1.2rem;
+    background-color: #56CFE1; /* Cyan */
+    color: #0B021D;
+}
+.start-btn:hover {
+    background-color: #7FFFeF;
+    transform: translateY(-3px);
+}
+
+/* --- Violation Badge in Header --- */
+.violation-badge {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    background-color: rgba(255, 77, 109, 0.2);
+    border: 1px solid #ff4d6d;
+    color: #ff4d6d;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+/* --- Termination Alert in Results --- */
+.termination-alert {
+    background-color: rgba(255, 77, 109, 0.15);
+    border: 2px solid #ff4d6d;
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+}
+.termination-alert h3 {
+    color: #ff4d6d;
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+.termination-alert p {
+    color: #ffdce0;
 }

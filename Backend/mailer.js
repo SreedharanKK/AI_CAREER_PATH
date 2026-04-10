@@ -6,7 +6,7 @@ process.stdin.on("data", chunk => input += chunk);
 process.stdin.on("end", async () => {
     try {
         const data = JSON.parse(input);
-        const { email, otp, fullName } = data; // Destructure potential fullName
+        const { email, otp, fullName, type } = data; // Destructure potential fullName
 
         if (!email) {
             console.error("Email missing");
@@ -18,13 +18,36 @@ process.stdin.on("end", async () => {
         let textContent = "";
         let htmlContent = ""; // Optional: for richer formatting
 
-        if (otp) {
+        // 1. Password Reset OTP
+        if (type === 'reset_otp') {
+            subject = "Reset Your Password - AI Career Guider";
+            textContent = `Your password reset code is ${otp}. Valid for 10 minutes.`;
+            htmlContent = `
+                <h3>Password Reset Request</h3>
+                <p>You requested to reset your password.</p>
+                <p>Your One-Time Password (OTP) is: <strong style="font-size: 24px; color: #7B2CBF;">${otp}</strong></p>
+                <p>This code is valid for 10 minutes.</p>
+                <p>If you did not request this, please ignore this email.</p>
+            `;
+        } 
+        // 2. Password Reset Success
+        else if (type === 'reset_success') {
+            subject = "Password Changed Successfully";
+            textContent = "Your password has been successfully updated. You can now login with your new password.";
+            htmlContent = `
+                <h3>Password Changed</h3>
+                <p>Your password for <strong>AI Career Guider</strong> has been successfully updated.</p>
+                <p>You can now <a href="http://localhost:5173">login</a> with your new password.</p>
+            `;
+        }
+        
+        else if (otp) {
             // --- OTP Email ---
             subject = "Your AI Career Guider OTP Code";
             textContent = `Your OTP code is ${otp}, valid for 5 minutes.`;
             htmlContent = `
                 <p>Hello,</p>
-                <p>Your One-Time Password (OTP) for AI Career Guider is: <strong>${otp}</strong></p>
+                <p>Your One-Time Password (OTP) for AI Career Guider is: <strong style="font-size: 24px; color: #7B2CBF;">${otp}</strong></p>
                 <p>This code is valid for 5 minutes.</p>
                 <p>If you did not request this code, please ignore this email.</p>
                 <br/>

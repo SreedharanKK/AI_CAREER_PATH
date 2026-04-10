@@ -16,7 +16,7 @@ from google.api_core.exceptions import ResourceExhausted
 quiz_bp = Blueprint('quiz', __name__)
 
 # --- Configuration ---
-QUIZ_RETRY_COOLDOWN = timedelta(hours=1) # Set cooldown period (e.g., 1 hour)
+QUIZ_RETRY_COOLDOWN = timedelta(hours=0.1) # Set cooldown period (e.g., 1 hour)
 PASS_PERCENTAGE = 80 # Define pass percentage
 QUIZ_CACHE_VALIDITY = timedelta(days=2) # Cache quiz for 2 days
 # ---------------------
@@ -108,7 +108,7 @@ def generate_quiz():
             - **Coding Questions:** Since this is a coding topic, include at least 5 `coding` type questions. For these, provide a problem description and a simple example of the expected output. The `correct_answer` should be a functional block of code.
             """
         prompt = f"""
-        You are an expert technical instructor. Create a comprehensive quiz with 15 to 25 questions for a learning step titled "{course_title}" with the description "{course_description}".
+        You are an expert technical instructor. Create a comprehensive quiz with 4 to 7 questions for a learning step titled "{course_title}" with the description "{course_description}".
         RULES:
         1.  **JSON Format:** MUST be a valid JSON object.
         2.  **Question Types:** Mix of `multiple-choice`, `short-answer`, and `coding` (if applicable).
